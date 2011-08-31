@@ -1,0 +1,50 @@
+<div class="record-modellist record-model-<?php echo $this->modelName; ?>">
+    <table class="record-list">
+        <thead>
+            <tr>
+                <?php foreach ($this->fieldNames as $name): ?>
+                    <?php if (isset($this->options['fieldLabels'][$name])): ?>
+                    <th><?php echo $this->escape($this->options['fieldLabels'][$name]); ?></th>
+                    <?php else: ?>
+                    <th><?php echo $this->escape($name); ?></th>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+                <?php if (count($this->options['singleRecordActions']) > 0): ?>
+                <th>Actions</th>
+                <?php endif; ?>
+            </tr>
+        </thead>
+        <tbody>
+            <?php $rowStyle = 1; ?>
+            <?php foreach ($this->paginator as $record): ?>
+            <tr class="<?php echo ($rowStyle ^= 1) ? 'odd' : 'even' ?>">
+                <?php foreach ($this->fieldNames as $name): ?>
+                    <td class="record-field-<?php echo $name; ?>"><?php echo $this->escape(is_array($record->$name) ? implode(', ', $record->$name) : $record->$name); ?></td>
+                <?php endforeach; ?>
+                <?php if (count($this->options['singleRecordActions']) > 0): ?>
+                <td class="record-actions">
+                    <?php foreach ($this->options['singleRecordActions'] as $name => $action): ?>
+                        <?php if ($this->getHelper('modelList')->isAllowed($record, $action)) : ?>
+                            <a class="record-action-<?php echo $action; ?>" href="<?php echo $this->url(array('action' => $action, 'id' => $record->identifier())); ?>"><?php echo $name; ?></a>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </td>
+                <?php endif; ?>
+            </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+
+    <?php if ($this->options['addRecordAction'] && $this->getHelper('modelList')->isAllowed(null, $this->options['addRecordAction'])): ?>
+    <ul class="record-add">
+        <li><a href="<?php echo $this->url(array('action' => $this->options['addRecordAction'])); ?>">Add</a></li>
+    </ul>
+    <?php endif; ?>
+
+<?php
+$paginationControl = $this->paginationControl(
+    $this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']
+);
+echo $paginationControl;
+?>
+</div>
