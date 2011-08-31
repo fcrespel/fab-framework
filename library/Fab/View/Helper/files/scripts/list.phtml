@@ -19,12 +19,12 @@
             <?php foreach ($this->paginator as $record): ?>
             <tr class="<?php echo ($rowStyle ^= 1) ? 'odd' : 'even' ?>">
                 <?php foreach ($this->fieldNames as $name): ?>
-                    <td class="record-field-<?php echo $name; ?>"><?php echo $this->escape(is_array($record->$name) ? implode(', ', $record->$name) : $record->$name); ?></td>
+                    <td class="record-field-<?php echo $name; ?>"><?php echo $this->context->getDecorator($name, $record->$name)->render($name, $record->$name); ?></td>
                 <?php endforeach; ?>
                 <?php if (count($this->options['singleRecordActions']) > 0): ?>
                 <td class="record-actions">
                     <?php foreach ($this->options['singleRecordActions'] as $name => $action): ?>
-                        <?php if ($this->getHelper('modelList')->isAllowed($record, $action)) : ?>
+                        <?php if ($this->context->isAllowed($record, $action)) : ?>
                             <a class="record-action-<?php echo $action; ?>" href="<?php echo $this->url(array('action' => $action, 'id' => $record->identifier())); ?>"><?php echo $name; ?></a>
                         <?php endif; ?>
                     <?php endforeach; ?>
@@ -35,7 +35,7 @@
         </tbody>
     </table>
 
-    <?php if ($this->options['addRecordAction'] && $this->getHelper('modelList')->isAllowed(null, $this->options['addRecordAction'])): ?>
+    <?php if ($this->options['addRecordAction'] && $this->context->isAllowed(null, $this->options['addRecordAction'])): ?>
     <ul class="record-add">
         <li><a href="<?php echo $this->url(array('action' => $this->options['addRecordAction'])); ?>">Add</a></li>
     </ul>

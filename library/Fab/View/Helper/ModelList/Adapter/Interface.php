@@ -1,6 +1,6 @@
 <?php
 
-interface Fab_View_Helper_ModelList_Interface
+interface Fab_View_Helper_ModelList_Adapter_Interface
 {
     /**
      * Constructor.

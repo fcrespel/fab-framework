@@ -1,6 +1,6 @@
 <?php
 
-class Fab_View_Helper_ModelList_Ldap extends Fab_View_Helper_ModelList_Abstract
+class Fab_View_Helper_ModelList_Adapter_Ldap extends Fab_View_Helper_ModelList_Adapter_Abstract
 {
     public function getFieldNames()
     {
