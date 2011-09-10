@@ -2,6 +2,8 @@
 
 class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decorator
 {
+    protected $_inProcess = array();
+    
     /**
      * Construct a new strategy decorator with an optional default strategy to
      * fallback to if the type to add is not a valid Doctrine_Record.
@@ -20,6 +22,11 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
      */
     public function addComplexType($type)
     {
+        if (in_array($type, $this->_inProcess)) {
+            return "tns:" . $type;
+        }
+        $this->_inProcess[$type] = $type;
+        
         if (!class_exists($type)) {
             throw new Fab_Soap_Wsdl_Exception(sprintf(
                 "Cannot add a complex type %s that is not an object or where ".
@@ -37,16 +44,19 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
 
         $dom = $this->getContext()->toDomDocument();
         
+        // Create a complexType matching the class name
         $complexType = $dom->createElement('xsd:complexType');
         $complexType->setAttribute('name', $type);
 
         $all = $dom->createElement('xsd:all');
 
+        // Add all table columns
         foreach ($table->getColumns() as $name => $def) {
             $columnName = $table->getColumnName($name);
             $fieldName = $table->getFieldName($columnName);
             switch ($def['type']) {
                 case 'enum':
+                case 'text':
                     $columnType = 'xsd:string';
                     break;
                 case 'decimal':
@@ -75,13 +85,29 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             }
             $all->appendChild($element);
         }
-
-        // TODO: handle relations
         
+        // Add relations
+        foreach ($table->getRelations() as $relation) {
+            if ($relation->isRefClass())
+                continue;
+            
+            $relationType = $relation->getClass();
+            if (!$relation->isOneToOne())
+                $relationType .= '[]';
+            
+            $element = $dom->createElement('xsd:element');
+            $element->setAttribute('name', $relation->getAlias());
+            $element->setAttribute('type', $this->getContext()->getType($relationType));
+            $element->setAttribute('nillable', 'true');
+            $all->appendChild($element);
+        }
+        
+        // Finalize the complexType and add it to the XML Schema
         $complexType->appendChild($all);
         $this->getContext()->getSchema()->appendChild($complexType);
         $this->getContext()->addType($type);
 
+        unset($this->_inProcess[$type]);
         return "tns:$type";
     }
 }
