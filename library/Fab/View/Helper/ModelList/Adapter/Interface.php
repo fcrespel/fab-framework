@@ -10,10 +10,12 @@ interface Fab_View_Helper_ModelList_Adapter_Interface
 
     /**
      * Get a paginator instance for a model.
-     * @param mixed $query
+     * @param mixed $query model query
+     * @param string $sortField field to order by
+     * @param string $sortDirection either 'asc' or 'desc'
      * @return Zend_Paginator
      */
-    public function getPaginator($query = null);
+    public function getPaginator($query = null, $sortField = null, $sortDirection = 'asc');
 
     /**
      * Get fields names for a model.

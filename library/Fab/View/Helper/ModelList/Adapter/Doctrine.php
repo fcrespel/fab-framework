@@ -18,10 +18,16 @@ class Fab_View_Helper_ModelList_Adapter_Doctrine extends Fab_View_Helper_ModelLi
         return $cols;
     }
 
-    public function getPaginator($query = null)
+    public function getPaginator($query = null, $sortField = null, $sortDirection = 'asc')
     {
-        if (!$query) {
+        if (!$query)
             $query = Doctrine_Core::getTable($this->_modelName)->createQuery();
+        if ($sortField) {
+            $orderby = $sortField;
+            if (!strcasecmp($sortDirection, 'desc'))
+                $orderby .= ' DESC';
+            $query->removeDqlQueryPart('orderby');
+            $query->orderBy($orderby);
         }
 
         $adapter = new ZFDoctrine_Paginator_Adapter_DoctrineQuery($query);

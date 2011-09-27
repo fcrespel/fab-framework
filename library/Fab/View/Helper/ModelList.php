@@ -5,6 +5,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
     /** @var array */
     protected static $_defaultOptions = array(
         'pageParamName'         => 'page',
+        'sortParamName'         => 'sort',
         'itemsPerPage'          => 30,
         'paginationStyle'       => 'Sliding',
         'paginationScript'      => 'pagination.phtml',
@@ -87,15 +88,25 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         // Process options
         $context = $this->_initContext($options);
         $options = array_merge(self::$_defaultOptions, $options);
+        
+        // Process request params
+        $request = Zend_Controller_Front::getInstance()->getRequest();
+        $pageParam = $request->getParam($options['pageParamName'], 1);
+        $sortParam = $request->getParam($options['sortParamName']);
+        $sortField = null;
+        $sortDirection = 'asc';
+        if (preg_match('/^(\w+)(\.[ad])?$/i', $sortParam, $sortMatches)) {
+            $sortField = $sortMatches[1];
+            if (isset($sortMatches[2]) && !strcasecmp($sortMatches[2], '.d'))
+                $sortDirection = 'desc';
+        }
 
         // Get the model-specific adapter
         $adapter = $context->getAdapter($modelName);
 
         // Configure the paginator
-        $request = Zend_Controller_Front::getInstance()->getRequest();
-        $currentPage = $request->getParam($options['pageParamName'], 1);
-        $paginator = $adapter->getPaginator($query);
-        $paginator->setCurrentPageNumber($currentPage);
+        $paginator = $adapter->getPaginator($query, $sortField, $sortDirection);
+        $paginator->setCurrentPageNumber($pageParam);
         $paginator->setItemCountPerPage($options['itemsPerPage']);
 
         // Get the field names
@@ -104,12 +115,20 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         } else {
             $fieldNames = $options['showFieldNames'];
         }
+        
+        // Fill the field labels if needed
+        foreach ($fieldNames as $fieldName) {
+            if (!isset($options['fieldLabels'][$fieldName]))
+                $options['fieldLabels'][$fieldName] = $fieldName;
+        }
 
         // Render the partial
         return $this->view->partial($options['listScript'], array(
             'modelName'     => $modelName,
             'fieldNames'    => $fieldNames,
             'paginator'     => $paginator,
+            'sortField'     => $sortField,
+            'sortDirection' => $sortDirection,
             'options'       => $options,
             'context'       => $context,
         ));

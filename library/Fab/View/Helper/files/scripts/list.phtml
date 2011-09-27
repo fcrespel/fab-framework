@@ -3,11 +3,9 @@
         <thead>
             <tr>
                 <?php foreach ($this->fieldNames as $name): ?>
-                    <?php if (isset($this->options['fieldLabels'][$name])): ?>
-                    <th><?php echo $this->escape($this->options['fieldLabels'][$name]); ?></th>
-                    <?php else: ?>
-                    <th><?php echo $this->escape($name); ?></th>
-                    <?php endif; ?>
+                    <th class="record-header<?php if (!strcasecmp($name, $this->sortField)) echo ' sorted-' . $this->sortDirection; ?>"><a href="<?php echo $this->url(array('sort' => !strcasecmp($name, $this->sortField) && $this->sortDirection == 'asc' ? $name . '.d' : $name)) ?>">
+                        <?php echo $this->escape($this->options['fieldLabels'][$name]); ?>
+                    </a></th>
                 <?php endforeach; ?>
                 <?php if (count($this->options['singleRecordActions']) > 0): ?>
                 <th>Actions</th>
