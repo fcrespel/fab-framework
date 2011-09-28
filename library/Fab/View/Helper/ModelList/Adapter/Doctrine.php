@@ -22,10 +22,19 @@ class Fab_View_Helper_ModelList_Adapter_Doctrine extends Fab_View_Helper_ModelLi
     {
         if (!$query)
             $query = Doctrine_Core::getTable($this->_modelName)->createQuery();
+
         if ($sortField) {
+            // Convert relation name to local field name
+            $table = Doctrine_Core::getTable($this->_modelName);
+            if ($table->hasRelation($sortField))
+                $sortField = $table->getRelation($sortField)->getLocalFieldName();
+            
+            // Create the 'order by' query part
             $orderby = $sortField;
             if (!strcasecmp($sortDirection, 'desc'))
                 $orderby .= ' DESC';
+            
+            // Replace the existing 'order by' query part
             $query->removeDqlQueryPart('orderby');
             $query->orderBy($orderby);
         }

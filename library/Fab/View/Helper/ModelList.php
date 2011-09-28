@@ -6,6 +6,8 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
     protected static $_defaultOptions = array(
         'pageParamName'         => 'page',
         'sortParamName'         => 'sort',
+        'sortField'             => null,
+        'sortDirection'         => 'asc',
         'itemsPerPage'          => 30,
         'paginationStyle'       => 'Sliding',
         'paginationScript'      => 'pagination.phtml',
@@ -93,10 +95,11 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         $request = Zend_Controller_Front::getInstance()->getRequest();
         $pageParam = $request->getParam($options['pageParamName'], 1);
         $sortParam = $request->getParam($options['sortParamName']);
-        $sortField = null;
-        $sortDirection = 'asc';
+        $sortField = $options['sortField'];
+        $sortDirection = $options['sortDirection'];
         if (preg_match('/^(\w+)(\.[ad])?$/i', $sortParam, $sortMatches)) {
             $sortField = $sortMatches[1];
+            $sortDirection = 'asc';
             if (isset($sortMatches[2]) && !strcasecmp($sortMatches[2], '.d'))
                 $sortDirection = 'desc';
         }
