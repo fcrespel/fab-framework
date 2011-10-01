@@ -12,7 +12,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         'paginationStyle'       => 'Sliding',
         'paginationScript'      => 'pagination.phtml',
         'listScript'            => 'list.phtml',
-        'addRecordAction'       => null,
+        'globalRecordActions'   => array(),
         'singleRecordActions'   => array(),
     );
     

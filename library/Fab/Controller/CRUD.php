@@ -83,10 +83,18 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
             'resource'              => $this->_getModelAclResource(),
             'showFieldNames'        => $this->_getModelFieldNames(),
             'fieldLabels'           => $this->_getModelFieldLabels(),
-            'addRecordAction'       => 'input',
+            'globalRecordActions'   => array(
+                'Add'    => array(
+                    'action'    => 'add',
+                ),
+            ),
             'singleRecordActions'   => array(
-                'Edit'      => 'input',
-                'Delete'    => 'delete',
+                'Edit'   => array(
+                    'action'    => 'edit',
+                ),
+                'Delete' => array(
+                    'action'    => 'delete',
+                ),
             ),
         );
         return $options;
@@ -134,14 +142,34 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
         $this->view->modelListQuery = $this->_getModelListQuery();
         $this->view->headTitle($this->_getModelDisplayName() . ' List');
     }
+    
+    /**
+     * Creation action.
+     */
+    public function addAction()
+    {
+        $modelCRUD = $this->getHelper('modelCRUD');
+        
+        // Ensure no existing record can be edited through this action
+        $this->getRequest()->setParam($modelCRUD->getRecordIdParam(), null);
+        
+        $modelCRUD->handleForm($this->_getModelForm(), 'list');
+        $this->view->headTitle($this->_getModelDisplayName() . ' Creation');
+    }
 
     /**
-     * Creation/modification action.
+     * Edition action.
      */
-    public function inputAction()
+    public function editAction()
     {
-        $this->getHelper('modelCRUD')->handleForm($this->_getModelForm(), 'list');
-        $this->view->headTitle($this->_getModelDisplayName() . ($this->getRequest()->getParam('id') ? ' Edition' : ' Creation'));
+        $modelCRUD = $this->getHelper('modelCRUD');
+        
+        // Ensure no new record can be added through this action
+        if ($this->getRequest()->getParam($modelCRUD->getRecordIdParam()) == null)
+            throw new Exception("Missing record id in request params.");
+        
+        $modelCRUD->handleForm($this->_getModelForm(), 'list');
+        $this->view->headTitle($this->_getModelDisplayName() . ' Edition');
     }
 
     /**
