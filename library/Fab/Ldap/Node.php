@@ -310,10 +310,11 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 
     /**
      * Find all models matching a filter, if any.
-     * @param string|Zend_Ldap_Filter $filter
+     * @param string|Zend_Ldap_Filter_Abstract $filter
+     * @param string $sort
      * @return Fab_Ldap_Node_Collection
      */
-    public static function findAll($filter = null)
+    public static function findAll($filter = null, $sort = null)
     {
         // Create the LDAP search filter
         $modelFilter = static::_getFilter();
@@ -321,17 +322,23 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
             $searchFilter = Zend_Ldap_Filter::andFilter($modelFilter, $filter);
         } else if ($modelFilter !== null) {
             $searchFilter = Zend_Ldap_Filter::string($modelFilter);
-        } else if ($filter !== null) {
+        } else if ($filter !== null && is_string($filter)) {
             $searchFilter = Zend_Ldap_Filter::string($filter);
+        } else if ($filter !== null && $filter instanceof Zend_Ldap_Filter_Abstract) {
+            $searchFilter = $filter;
         } else {
             $searchFilter = Zend_Ldap_Filter::any('objectClass');
         }
+        
+        // Set the default sort field to the RDN attribute
+        if ($sort === null)
+            $sort = static::_getRdnAttribute();
 
         // Instantiate the LDAP object from configuration
         $ldap = new Zend_Ldap(static::_getConfig());
 
         // Perform the search and return a collection of models sorted by the RDN attribute
-        $collection = $ldap->search($searchFilter, static::_getSubDn(), Zend_Ldap::SEARCH_SCOPE_SUB, array('*', '+'), static::_getRdnAttribute(), 'Fab_Ldap_Node_Collection');
+        $collection = $ldap->search($searchFilter, static::_getSubDn(), Zend_Ldap::SEARCH_SCOPE_SUB, array('*', '+'), $sort, 'Fab_Ldap_Node_Collection');
         $collection->setModelClass(get_called_class());
         return $collection;
     }

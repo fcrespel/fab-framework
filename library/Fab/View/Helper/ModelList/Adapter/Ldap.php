@@ -11,7 +11,7 @@ class Fab_View_Helper_ModelList_Adapter_Ldap extends Fab_View_Helper_ModelList_A
     public function getPaginator($query = null, $sortField = null, $sortDirection = 'asc')
     {
         $modelName = $this->_modelName;
-        $records = $modelName::findAll($query);
+        $records = $modelName::findAll($query, $sortField);
         return Zend_Paginator::factory($records);
     }
 }
