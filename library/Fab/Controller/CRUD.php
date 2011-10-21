@@ -17,6 +17,33 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
     /** @var string ACL resource ID to use when checking permissions */
     protected $_modelAclResource;
     
+    
+    /**
+     * Post-dispatch routines.
+     */
+    public function postDispatch()
+    {
+        $flashMessenger = $this->getHelper('FlashMessenger');
+        $namespaces = array('default', 'success', 'info', 'warning', 'error');
+        $messages = array();
+        foreach ($namespaces as $namespace) {
+            if ($flashMessenger->setNamespace($namespace)->hasMessages())
+                $messages[$namespace] = $flashMessenger->getMessages();
+        }
+        $this->view->flashMessages = $messages;
+    }
+    
+    /**
+     * Add a message to the FlashMessenger helper.
+     * @param type $record affected record
+     * @param type $namespace 'info', 'success', 'warning' or 'error'
+     * @param type $message message in which %1$s is the model display name and %2$s is the record as a string
+     */
+    protected function _addFlashMessage($record, $namespace, $message)
+    {
+        $message = sprintf($message, $this->_getModelDisplayName(), (string)$record);
+        $this->_helper->flashMessenger->setNamespace($namespace)->addMessage($message);
+    }
 
     /**
      * Get the model class name.
@@ -149,11 +176,22 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
     public function addAction()
     {
         $modelCRUD = $this->getHelper('modelCRUD');
+        $redirector = $this->getHelper('redirector');
+        $exit = $redirector->getExit();
+        $form = $this->_getModelForm();
         
         // Ensure no existing record can be edited through this action
         $this->getRequest()->setParam($modelCRUD->getRecordIdParam(), null);
         
+        // Handle the form submission
+        $redirector->setExit(false);
         $modelCRUD->handleForm($this->_getModelForm(), 'list');
+        $redirector->setExit($exit);
+        if ($redirector->getRedirectUrl() !== null) {
+            $this->_addFlashMessage($form->getRecord(), 'success', '%1$s \'%2$s\' created.');
+            $redirector->redirectAndExit();
+        }
+        
         $this->view->headTitle($this->_getModelDisplayName() . ' Creation');
     }
 
@@ -163,12 +201,23 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
     public function editAction()
     {
         $modelCRUD = $this->getHelper('modelCRUD');
+        $redirector = $this->getHelper('redirector');
+        $exit = $redirector->getExit();
+        $form = $this->_getModelForm();
         
         // Ensure no new record can be added through this action
         if ($this->getRequest()->getParam($modelCRUD->getRecordIdParam()) == null)
             throw new Exception("Missing record id in request params.");
         
-        $modelCRUD->handleForm($this->_getModelForm(), 'list');
+        // Handle the form submission
+        $redirector->setExit(false);
+        $modelCRUD->handleForm($form, 'list');
+        $redirector->setExit($exit);
+        if ($redirector->getRedirectUrl() !== null) {
+            $this->_addFlashMessage($form->getRecord(), 'success', '%1$s \'%2$s\' updated.');
+            $redirector->redirectAndExit();
+        }
+        
         $this->view->headTitle($this->_getModelDisplayName() . ' Edition');
     }
 
@@ -177,6 +226,17 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
      */
     public function deleteAction()
     {
-        $this->getHelper('modelCRUD')->handleDelete($this->_getModelClassName(), 'list');
+        $modelCRUD = $this->getHelper('modelCRUD');
+        $redirector = $this->getHelper('redirector');
+        $exit = $redirector->getExit();
+        
+        // Handle the deletion
+        $redirector->setExit(false);
+        $modelCRUD->handleDelete($this->_getModelClassName(), 'list');
+        $redirector->setExit($exit);
+        if ($redirector->getRedirectUrl() !== null) {
+            $this->_addFlashMessage('', 'success', '%1$s deleted.');
+            $redirector->redirectAndExit();
+        }
     }
 }
