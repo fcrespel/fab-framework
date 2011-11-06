@@ -22,8 +22,10 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
      */
     public function addComplexType($type)
     {
+        $mappedType = $this->getContext()->getMappedType($type);
+        
         if (in_array($type, $this->_inProcess)) {
-            return "tns:" . $type;
+            return "tns:" . $mappedType;
         }
         $this->_inProcess[$type] = $type;
         
@@ -44,9 +46,9 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
 
         $dom = $this->getContext()->toDomDocument();
         
-        // Create a complexType matching the class name
+        // Create a complexType
         $complexType = $dom->createElement('xsd:complexType');
-        $complexType->setAttribute('name', $type);
+        $complexType->setAttribute('name', $mappedType);
 
         $all = $dom->createElement('xsd:all');
 
@@ -108,6 +110,6 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
         $this->getContext()->addType($type);
 
         unset($this->_inProcess[$type]);
-        return "tns:$type";
+        return "tns:$mappedType";
     }
 }

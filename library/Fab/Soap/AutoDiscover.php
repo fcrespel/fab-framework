@@ -4,6 +4,12 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
 {
     /** @var string Web service name */
     protected $_serviceName;
+    
+    /** @var string */
+    protected $_wsdlClass = 'Fab_Soap_Wsdl';
+    
+    /** @var array */
+    protected $_classmap = array();
 
     /**
      * Constructor.
@@ -14,7 +20,7 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
      */
     public function __construct($strategy = true, $uri = null, $wsdlClass = null)
     {
-        parent::__construct($strategy === null || $strategy === true ? 'Zend_Soap_Wsdl_Strategy_ArrayOfTypeSequence' : $strategy, $uri, $wsdlClass);
+        parent::__construct($strategy === null || $strategy === true ? 'Fab_Soap_Wsdl_Strategy_ArrayOfType' : $strategy, $uri, $wsdlClass);
         $this->setBindingStyle(array('style' => 'document'));
         $this->setOperationBodyStyle(array('use' => 'literal'));
     }
@@ -59,6 +65,41 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
         $this->_serviceName = $serviceName;
         return $this;
     }
+    
+    /**
+     * Get the classmap.
+     * @return array
+     */
+    public function getClassmap()
+    {
+        return $this->_classmap;
+    }
+    
+    /**
+     * Set the classmap.
+     * @param array $classmap
+     * @return self 
+     */
+    public function setClassmap($classmap)
+    {
+        $this->_classmap = $classmap;
+        return $this;
+    }
+    
+    /**
+     * Get the WSDL object instance, and initialize it if necessary.
+     * @return Zend_Soap_Wsdl
+     */
+    public function _getWsdl()
+    {
+        if ($this->_wsdl === null) {
+            $wsdl = new $this->_wsdlClass($this->getServiceName(), $this->getUri(), $this->_strategy);
+            $wsdl->addSchemaTypeSection(); // The wsdl:types element must precede all other elements (WS-I Basic Profile 1.1 R2023)
+            $wsdl->setClassmap($this->getClassmap());
+            $this->_wsdl = $wsdl;
+        }
+        return $this->_wsdl;
+    }
 
     /**
      * Set the Class the SOAP server will use
@@ -77,10 +118,7 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
             $this->setServiceName($class);
         }
 
-        $wsdl = new $this->_wsdlClass($name, $uri, $this->_strategy);
-
-        // The wsdl:types element must precede all other elements (WS-I Basic Profile 1.1 R2023)
-        $wsdl->addSchemaTypeSection();
+        $wsdl = $this->_getWsdl();
 
         $port = $wsdl->addPortType($name . 'Port');
         $binding = $wsdl->addBinding($name . 'Binding', 'tns:' .$name. 'Port');
@@ -121,10 +159,7 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
                 $name = $parts[0];
                 $this->setServiceName($name);
             }
-            $wsdl = new $this->_wsdlClass($name, $uri, $this->_strategy);
-
-            // The wsdl:types element must precede all other elements (WS-I Basic Profile 1.1 R2023)
-            $wsdl->addSchemaTypeSection();
+            $wsdl = $this->_getWsdl();
 
             $port = $wsdl->addPortType($name . 'Port');
             $binding = $wsdl->addBinding($name . 'Binding', 'tns:' .$name. 'Port');

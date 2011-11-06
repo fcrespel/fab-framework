@@ -82,8 +82,9 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
     {
         if (null === $this->_autoDiscover) {
             $strategy = new Fab_Soap_Wsdl_Strategy_DoctrineRecord();
-            $strategy = new Fab_Soap_Wsdl_Strategy_ArrayOfTypeSequence($strategy);
+            $strategy = new Fab_Soap_Wsdl_Strategy_ArrayOfType($strategy);
             $this->_autoDiscover = new Fab_Soap_AutoDiscover($strategy);
+            $this->_autoDiscover->setClassmap($this->_getClassmap());
         }
         return $this->_autoDiscover;
     }
