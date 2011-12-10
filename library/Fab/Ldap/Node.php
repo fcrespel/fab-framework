@@ -2,6 +2,9 @@
 
 abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 {
+    /** @var boolean */
+    protected $_isLazy = false;
+    
     /** @var string */
     protected static $_subDn = '';
 
@@ -118,12 +121,69 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
     }
     
     /**
+     * Check if data should be loaded from LDAP, and if so does so.
+     */
+    protected function _lazyLoad()
+    {
+        if ($this->_isLazy === true) {
+            $this->reload(); // This also removes the lazy flag
+        }
+    }
+    
+    /**
+     * Checks if the attribute can be set and sets it accordingly.
+     *
+     * @param  string  $name
+     * @param  mixed   $value
+     * @param  boolean $append
+     * @throws Zend_Ldap_Exception
+     */
+    protected function _setAttribute($name, $value, $append)
+    {
+        $this->_lazyLoad();
+        return parent::_setAttribute($name, $value, $append);
+    }
+    
+    /**
+     * Checks if the attribute can be set and sets it accordingly.
+     *
+     * @param  string        $name
+     * @param  integer|array $value
+     * @param  boolean       $utc
+     * @param  boolean       $append
+     * @throws Zend_Ldap_Exception
+     */
+    protected function _setDateTimeAttribute($name, $value, $utc, $append)
+    {
+        $this->_lazyLoad();
+        return parent::_setDateTimeAttribute($name, $value, $utc, $append);
+    }
+    
+    /**
+     * Constructor.
+     *
+     * Constructor is protected to enforce the use of factory methods.
+     *
+     * @param  Zend_Ldap_Dn $dn
+     * @param  array        $data
+     * @param  boolean      $fromDataSource
+     * @param  Zend_Ldap    $ldap
+     * @param  boolean      $lazy
+     * @throws Zend_Ldap_Exception
+     */
+    public function __construct(Zend_Ldap_Dn $dn, array $data, $fromDataSource, Zend_Ldap $ldap = null, $lazy = false)
+    {
+        $this->_isLazy = $fromDataSource && $lazy ? true : false;
+        parent::__construct($dn, $data, $fromDataSource, $ldap);
+    }
+    
+    /**
      * Return a unique identifier for this object.
      * @return string
      */
     public function identifier()
     {
-        return (string) $this->getAttribute(static::_getRdnAttribute(), 0);
+        return current($this->getRdnArray());
     }
 
     /**
@@ -132,7 +192,37 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     public function __toString()
     {
-        return (string) $this->getAttribute(static::_getRdnAttribute(), 0);
+        return current($this->getRdnArray());
+    }
+    
+    /**
+     * Reload node attributes from LDAP.
+     *
+     * This is an online method.
+     *
+     * @param  Zend_Ldap $ldap
+     * @return Zend_Ldap_Node Provides a fluid interface
+     * @throws Zend_Ldap_Exception
+     */
+    public function reload(Zend_Ldap $ldap = null) {
+        $this->_isLazy = false;
+        return parent::reload($ldap);
+    }
+    
+    /**
+     * Gets node attributes.
+     *
+     * The array contains all attributes in its internal format (no conversion).
+     *
+     * This is an offline method.
+     *
+     * @param  boolean $includeSystemAttributes
+     * @return array
+     */
+    public function getData($includeSystemAttributes = true)
+    {
+        $this->_lazyLoad();
+        return parent::getData($includeSystemAttributes);
     }
 
     /**
@@ -149,6 +239,8 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     public function getAttribute($name, $index = null)
     {
+        $this->_lazyLoad();
+        
         $attr = parent::getAttribute($name, $index);
 
         // Flatten 1-element array
@@ -232,17 +324,104 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 
         return parent::setAttribute($name, $mapped);
     }
+    
+    /**
+     * Sets a LDAP password.
+     *
+     * @param  string $password
+     * @param  string $hashType
+     * @param  string $attribName
+     * @return Zend_Ldap_Node Provides a fluid interface
+     * @throws Zend_Ldap_Exception
+     */
+    public function setPasswordAttribute($password, $hashType = Zend_Ldap_Attribute::PASSWORD_HASH_MD5, $attribName = 'userPassword')
+    {
+        $this->_lazyLoad();
+        return parent::setPasswordAttribute($password, $hashType, $attribName);
+    }
+    
+    /**
+     * Removes duplicate values from a LDAP attribute
+     *
+     * @param  string $attribName
+     * @return void
+     */
+    public function removeDuplicatesFromAttribute($attribName)
+    {
+        $this->_lazyLoad();
+        return parent::removeDuplicatesFromAttribute($attribName);
+    }
+
+    /**
+     * Remove given values from a LDAP attribute
+     *
+     * @param  string      $attribName
+     * @param  mixed|array $value
+     * @return void
+     */
+    public function removeFromAttribute($attribName, $value)
+    {
+        $this->_lazyLoad();
+        parent::removeFromAttribute($attribName, $value);
+    }
+    
+    /**
+     * Checks whether a given attribute exists.
+     *
+     * If $emptyExists is false empty attributes (containing only array()) are
+     * treated as non-existent returning false.
+     * If $emptyExists is true empty attributes are treated as existent returning
+     * true. In this case method returns false only if the attribute name is
+     * missing in the key-collection.
+     *
+     * @param  string  $name
+     * @param  boolean $emptyExists
+     * @return boolean
+     */
+    public function existsAttribute($name, $emptyExists = false)
+    {
+        $this->_lazyLoad();
+        return parent::existsAttribute($name, $emptyExists);
+    }
+    
+    /**
+     * Checks if the given value(s) exist in the attribute
+     *
+     * @param  string      $attribName
+     * @param  mixed|array $value
+     * @return boolean
+     */
+    public function attributeHasValue($attribName, $value)
+    {
+        $this->_lazyLoad();
+        return parent::attributeHasValue($attribName, $value);
+    }
+    
+    /**
+     * Returns the number of attributes in node.
+     * Implements Countable
+     *
+     * @return int
+     */
+    public function count()
+    {
+        $this->_lazyLoad();
+        return parent::count();
+    }
 
     /**
      * Factory method to create an attached Fab_Ldap_Node for a given DN.
+     * By default, the node's data is not loaded from LDAP and will be lazily
+     * loaded as required, when calling methods such as getAttribute().
      * This will additionally cache the instantiated model for the duration of
      * the PHP engine execution, to avoid superfluous LDAP queries.
      * @param  string|array|Zend_Ldap_Dn $dn
      * @param  Zend_Ldap                 $ldap
+     * @param  boolean                   $lazy
      * @return Fab_Ldap_Node|null
      * @throws Zend_Ldap_Exception
      */
-    public static function fromLdap($dn, Zend_Ldap $ldap)
+    public static function fromLdap($dn, Zend_Ldap $ldap, $lazy = true)
     {
         if (is_string($dn) || is_array($dn)) {
             $dn = Zend_Ldap_Dn::factory($dn);
@@ -257,12 +436,15 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
             return self::$_modelCache[$dnString];
         }
 
-        $data = $ldap->getEntry($dn, array('*', '+'), true);
-        if ($data === null) {
-            return null;
+        $data = array();
+        if ($lazy === false) {
+            $data = $ldap->getEntry($dn, array('*', '+'), true);
+            if ($data === null) {
+                return null;
+            }
         }
 
-        $entry = new static($dn, $data, true, $ldap);
+        $entry = new static($dn, $data, true, $ldap, $lazy);
         self::$_modelCache[$dnString] = $entry;
         return $entry;
     }
