@@ -4,18 +4,6 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 {
     /** @var boolean */
     protected $_isLazy = false;
-    
-    /** @var string */
-    protected static $_subDn = '';
-
-    /** @var string */
-    protected static $_rdnAttribute = 'cn';
-
-    /** @var array */
-    protected static $_objectClass = array();
-
-    /** @var string|Zend_Ldap_Filter */
-    protected static $_filter = 'objectClass=*';
 
     /** @var array */
     protected static $_arrayAttributes = array();
@@ -32,10 +20,16 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
     private static $_modelCache = array();
 
     /**
-     * Get the configuration for this LDAP model.
+     * Get the LDAP configuration.
      * @return Zend_Config|array
      */
-    protected static abstract function _getConfig();
+    protected static abstract function _getLdapConfig();
+    
+    /**
+     * Get the configuration for this model.
+     * @return Zend_Config|array
+     */
+    protected static abstract function _getModelConfig();
 
     /**
      * Get the subtree distinguished name.
@@ -45,9 +39,17 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     protected static function _getSubDn($full = true)
     {
-        $dn = static::$_subDn;
+        $modelConfig = static::_getModelConfig();
+        if ($modelConfig instanceof Zend_Config)
+            $modelConfig = $modelConfig->toArray();
+        
+        $ldapConfig = static::_getLdapConfig();
+        if ($ldapConfig instanceof Zend_Config)
+            $ldapConfig = $ldapConfig->toArray();
+        
+        $dn = $modelConfig['subDn'];
         if ($full === true) {
-            $baseDn = static::_getConfig()->baseDn;
+            $baseDn = $ldapConfig['baseDn'];
             if (!empty($baseDn))
                 $dn .= ',' . $baseDn;
         }
@@ -61,7 +63,11 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     protected static function _getRdnAttribute()
     {
-        return static::$_rdnAttribute;
+        $modelConfig = static::_getModelConfig();
+        if ($modelConfig instanceof Zend_Config)
+            $modelConfig = $modelConfig->toArray();
+        
+        return $modelConfig['rdnAttribute'];
     }
 
     /**
@@ -70,7 +76,11 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     protected static function _getObjectClass()
     {
-        return static::$_objectClass;
+        $modelConfig = static::_getModelConfig();
+        if ($modelConfig instanceof Zend_Config)
+            $modelConfig = $modelConfig->toArray();
+        
+        return $modelConfig['objectClass'];
     }
 
     /**
@@ -79,7 +89,11 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      */
     protected static function _getFilter()
     {
-        return static::$_filter;
+        $modelConfig = static::_getModelConfig();
+        if ($modelConfig instanceof Zend_Config)
+            $modelConfig = $modelConfig->toArray();
+        
+        return $modelConfig['filter'];
     }
 
     /**
@@ -254,7 +268,7 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
         $modelMap = static::_getModelMap();
         if (array_key_exists($name, $modelMap)) {
             $model = $modelMap[$name];
-            $ldap = new Zend_Ldap(static::_getConfig());
+            $ldap = new Zend_Ldap(static::_getLdapConfig());
             if (is_string($attr) && Zend_Ldap_Dn::checkDn($attr)) {
                 $attr = $model::fromLdap($attr, $ldap);
             } else if (is_array($attr)) {
@@ -517,7 +531,7 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
             $sort = static::_getRdnAttribute();
 
         // Instantiate the LDAP object from configuration
-        $ldap = new Zend_Ldap(static::_getConfig());
+        $ldap = new Zend_Ldap(static::_getLdapConfig());
 
         // Perform the search and return a collection of models sorted by the RDN attribute
         $collection = $ldap->search($searchFilter, static::_getSubDn(), Zend_Ldap::SEARCH_SCOPE_SUB, array('*', '+'), $sort, 'Fab_Ldap_Node_Collection');
@@ -546,7 +560,7 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
         }
 
         // Instantiate the LDAP object from configuration
-        $ldap = new Zend_Ldap(static::_getConfig());
+        $ldap = new Zend_Ldap(static::_getLdapConfig());
 
         // Create and attach the new node
         if (is_string($dn) || is_array($dn)) {
