@@ -107,7 +107,7 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
         // Finalize the complexType and add it to the XML Schema
         $complexType->appendChild($all);
         $this->getContext()->getSchema()->appendChild($complexType);
-        $this->getContext()->addType($type);
+        $this->getContext()->addType($mappedType);
 
         unset($this->_inProcess[$type]);
         return "tns:$mappedType";

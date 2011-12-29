@@ -36,6 +36,9 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
             is_callable(array($this->_model, 'getFieldLabels'))) {
             $this->setFieldLabels(call_user_func(array($this->_model, 'getFieldLabels')));
         }
+        
+        $this->addPrefixPath('Fab_Form_Element_', 'Fab/Form/Element/', self::ELEMENT);
+        
         parent::__construct($options);
     }
 }

@@ -34,7 +34,7 @@ abstract class Fab_Soap_Wsdl_Strategy_Decorator extends Zend_Soap_Wsdl_Strategy_
     public function setDefaultComplexTypeStrategy($strategy = true)
     {
         if ($strategy === true || $strategy === null) {
-            $strategy = new Zend_Soap_Wsdl_Strategy_DefaultComplexType();
+            $strategy = new Fab_Soap_Wsdl_Strategy_DefaultComplexType();
         } else if ($strategy === false) {
             $strategy = new Zend_Soap_Wsdl_Strategy_AnyType();
         } else if (is_string($strategy)) {
