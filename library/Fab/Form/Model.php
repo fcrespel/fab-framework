@@ -17,7 +17,7 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
         'time' => 'text',
         'date' => 'text',
         'enum' => 'select',
-        'text' => 'text',
+        'text' => 'textarea',
     );
     
     /**
@@ -40,5 +40,21 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
         $this->addPrefixPath('Fab_Form_Element_', 'Fab/Form/Element/', self::ELEMENT);
         
         parent::__construct($options);
+    }
+    
+    /**
+     * Parses columns to fields
+     */
+    protected function _columnsToFields()
+    {
+        parent::_columnsToFields();
+        foreach ($this->getElements() as $element) {
+            if ($element->getType() == 'Zend_Form_Element_Textarea') {
+                if ($element->getAttrib('rows') == null)
+                    $element->setAttrib('rows', 3);
+                if ($element->getAttrib('cols') == null)
+                    $element->setAttrib('cols', 70);
+            }
+        }
     }
 }

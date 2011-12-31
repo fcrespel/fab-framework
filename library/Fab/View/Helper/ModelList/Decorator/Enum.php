@@ -10,6 +10,6 @@ class Fab_View_Helper_ModelList_Decorator_Enum extends Fab_View_Helper_ModelList
      */
     public function render($fieldName, $fieldValue)
     {
-        return '<span class="record-value-enum record-value-enum-' . $fieldValue . '">' . $this->view->escape($fieldValue) . '</span>';
+        return '<span class="record-value-enum record-value-enum-' . strtolower($fieldValue) . '">' . $this->view->escape($fieldValue) . '</span>';
     }
 }
