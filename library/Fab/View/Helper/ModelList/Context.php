@@ -17,6 +17,9 @@ class Fab_View_Helper_ModelList_Context
     /** @var string|Zend_Acl_Resource_Interface */
     protected $_resource;
     
+    /** @var bool */
+    protected $_useRecordResource = true;
+    
     /** @var array */
     protected $_adapters = array();
     
@@ -42,10 +45,12 @@ class Fab_View_Helper_ModelList_Context
             $this->setUseAcl($options['useAcl']);
         if (isset($options['acl']))
             $this->setAcl($options['acl']);
-        if (isset($options['resource']))
-            $this->setResource($options['resource']);
         if (isset($options['role']))
             $this->setRole($options['role']);
+        if (isset($options['resource']))
+            $this->setResource($options['resource']);
+        if (isset($options['useRecordResource']))
+            $this->setUseRecordResource($options['useRecordResource']);
         if (isset($options['adapters']))
             $this->addAdapters($options['adapters']);
         if (isset($options['decorators']))
@@ -64,7 +69,7 @@ class Fab_View_Helper_ModelList_Context
         if (!$this->getUseAcl() || ($acl = $this->getAcl()) === null)
             return true;
 
-        if (!is_string($resource) && !($resource instanceof Zend_Acl_Resource_Interface))
+        if (!$this->getUseRecordResource() || (!is_string($resource) && !($resource instanceof Zend_Acl_Resource_Interface)))
             $resource = $this->getResource();
 
         if ($resource === null && $privilege === null)
@@ -172,6 +177,26 @@ class Fab_View_Helper_ModelList_Context
     public function setResource($resource = null)
     {
         $this->_resource = $resource;
+        return $this;
+    }
+    
+    /**
+     * Get whether each record's ACL resource should be used (if available).
+     * @return bool
+     */
+    public function getUseRecordResource()
+    {
+        return $this->_useRecordResource;
+    }
+
+    /**
+     * Set whether each record's ACL resource should be used (if available).
+     * @param  bool $useRecordResource
+     * @return self
+     */
+    public function setUseRecordResource($useRecordResource = true)
+    {
+        $this->_useRecordResource = (bool) $useRecordResource;
         return $this;
     }
     
