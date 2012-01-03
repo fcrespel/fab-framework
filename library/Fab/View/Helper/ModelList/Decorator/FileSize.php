@@ -15,6 +15,9 @@ class Fab_View_Helper_ModelList_Decorator_FileSize extends Fab_View_Helper_Model
      */
     public function render($fieldName, $fieldValue)
     {
+        if (empty($fieldValue))
+            return $fieldValue;
+        
         $unit = 0;
         $units = $this->getUnits();
         $value = $fieldValue;

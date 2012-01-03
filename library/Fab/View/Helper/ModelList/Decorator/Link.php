@@ -16,6 +16,9 @@ class Fab_View_Helper_ModelList_Decorator_Link extends Fab_View_Helper_ModelList
      */
     public function render($fieldName, $fieldValue)
     {
+        if (empty($fieldValue))
+            return $fieldValue;
+        
         $urlOpts = $this->getUrlOptions();
         foreach ($this->getFieldMap() as $paramField => $paramName) {
             $urlOpts[$paramName] = $fieldValue->$paramField;

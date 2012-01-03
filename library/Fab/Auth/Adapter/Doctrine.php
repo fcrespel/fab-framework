@@ -13,6 +13,9 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
 
     /** @var mixed */
     protected $_credentialTransformer = null;
+    
+    /** @var string */
+    protected $_lockColumn = null;
 
     /** @var Doctrine_Query */
     protected $_query = null;
@@ -90,6 +93,24 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
     public function setCredentialTransformer($credentialTransformer = null)
     {
         $this->_credentialTransformer = $credentialTransformer;
+    }
+    
+    /**
+     * Get the column name to use to check if the account is locked.
+     * @return string
+     */
+    public function getLockColumn()
+    {
+        return $this->_lockColumn;
+    }
+
+    /**
+     * Set the column name to use to check if the account is locked.
+     * @param string $lockColumn
+     */
+    public function setLockColumn($lockColumn)
+    {
+        $this->_lockColumn = $lockColumn;
     }
 
     /**
@@ -184,11 +205,17 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
 
             // Match with the credential column
             if ($result->getFirst()->get($this->getCredentialColumn()) === $credential) {
-                // Success!
-                $code = Zend_Auth_Result::SUCCESS;
-                $messages[0] = 'Authentication successful.';
-                $identity = $this->getIdentity();
-                $this->_record = $result->getFirst();
+                if ($this->getLockColumn() !== null && $result->getFirst()->get($this->getLockColumn())) {
+                    // Locked account
+                    $code = Zend_Auth_Result::FAILURE_UNCATEGORIZED;
+                    $messages[0] = 'Account is locked. Please contact an administrator.';
+                } else {
+                    // Success!
+                    $code = Zend_Auth_Result::SUCCESS;
+                    $messages[0] = 'Authentication successful.';
+                    $identity = $this->getIdentity();
+                    $this->_record = $result->getFirst();
+                }
             } else {
                 // Credentials don't match
                 $code = Zend_Auth_Result::FAILURE_CREDENTIAL_INVALID;

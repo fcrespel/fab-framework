@@ -13,6 +13,10 @@ class Fab_View_Helper_ModelList_Decorator_Array extends Fab_View_Helper_ModelLis
      */
     public function render($fieldName, $fieldValue)
     {
+        if (empty($fieldValue))
+            return $fieldValue;
+        
+        if (!is_array($fieldValue)) $fieldValue = array($fieldValue);
         $decoratedValues = array();
         foreach ($fieldValue as $singleValue) {
             $decoratedValues[] = $this->context->getDecorator($fieldName, $singleValue)->render($fieldName, $singleValue);

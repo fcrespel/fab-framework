@@ -13,6 +13,9 @@ class Fab_View_Helper_ModelList_Decorator_Map extends Fab_View_Helper_ModelList_
      */
     public function render($fieldName, $fieldValue)
     {
+        if (empty($fieldValue))
+            return $fieldValue;
+        
         $map = $this->getMap();
         $value = isset($map[$fieldValue]) ? $map[$fieldValue] : $fieldValue;
         return $this->view->escape($value);
