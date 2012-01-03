@@ -185,7 +185,7 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
         
         // Handle the form submission
         $redirector->setExit(false);
-        $modelCRUD->handleForm($this->_getModelForm(), 'list');
+        $modelCRUD->handleForm($form, 'list');
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
             $this->_addFlashMessage($form->getRecord(), 'success', '%1$s \'%2$s\' created.');
