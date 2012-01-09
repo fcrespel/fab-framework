@@ -3,7 +3,7 @@
         <thead>
             <tr>
                 <?php foreach ($this->fieldNames as $name): ?>
-                    <th class="record-header sort-<?php echo $this->sortDirection ?><?php if (!strcasecmp($name, $this->sortField)) echo ' sorted' ?>"><a href="<?php echo $this->url(array('sort' => !strcasecmp($name, $this->sortField) && $this->sortDirection == 'asc' ? $name . '.d' : $name)) ?>">
+                    <th class="record-header sort-<?php echo $this->sortDirection ?><?php if (!strcasecmp($name, $this->sortField)) echo ' sorted' ?>"><a href="<?php echo $this->url(array($this->options['sortParamName'] => !strcasecmp($name, $this->sortField) && $this->sortDirection == 'asc' ? $name . '.d' : $name)) ?>">
                         <?php echo $this->escape($this->options['fieldLabels'][$name]); ?>
                     </a></th>
                 <?php endforeach; ?>
