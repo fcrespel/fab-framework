@@ -1,6 +1,6 @@
 <?php
 
-abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zend_Acl_Resource_Interface
+abstract class Fab_Controller_CRUD extends Fab_Controller_Action
 {
     /** @var string model class name */
     protected $_modelClassName;
@@ -19,27 +19,12 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
     
     
     /**
-     * Post-dispatch routines.
-     */
-    public function postDispatch()
-    {
-        $flashMessenger = $this->getHelper('FlashMessenger');
-        $namespaces = array('default', 'success', 'info', 'warning', 'error');
-        $messages = array();
-        foreach ($namespaces as $namespace) {
-            if ($flashMessenger->setNamespace($namespace)->hasMessages())
-                $messages[$namespace] = $flashMessenger->getMessages();
-        }
-        $this->view->flashMessages = $messages;
-    }
-    
-    /**
      * Add a message to the FlashMessenger helper.
-     * @param type $record affected record
      * @param type $namespace 'info', 'success', 'warning' or 'error'
      * @param type $message message in which %1$s is the model display name and %2$s is the record as a string
+     * @param type $record affected record
      */
-    protected function _addFlashMessage($record, $namespace, $message)
+    protected function _addFlashMessage($namespace, $message, $record = '')
     {
         $message = sprintf($message, $this->_getModelDisplayName(), (string)$record);
         $this->_helper->flashMessenger->setNamespace($namespace)->addMessage($message);
@@ -137,21 +122,6 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
     }
 
     /**
-     * Get the string identifier of this Resource.
-     * @return string
-     */
-    public function getResourceId()
-    {
-        $front = $this->getFrontController();
-        $request = $this->getRequest();
-
-        $module = $request->getModuleName();
-        $controller = $request->getControllerName();
-        
-        return ($module == $front->getDefaultModule())? $controller : "$module:$controller";
-    }
-
-    /**
      * Landing page.
      */
     public function indexAction()
@@ -188,7 +158,7 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
         $modelCRUD->handleForm($form, 'list');
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
-            $this->_addFlashMessage($form->getRecord(), 'success', '%1$s \'%2$s\' created.');
+            $this->_addFlashMessage('success', '%1$s \'%2$s\' created.', $form->getRecord());
             $redirector->redirectAndExit();
         }
         
@@ -214,7 +184,7 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
         $modelCRUD->handleForm($form, 'list');
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
-            $this->_addFlashMessage($form->getRecord(), 'success', '%1$s \'%2$s\' updated.');
+            $this->_addFlashMessage('success', '%1$s \'%2$s\' updated.', $form->getRecord());
             $redirector->redirectAndExit();
         }
         
@@ -235,7 +205,7 @@ abstract class Fab_Controller_CRUD extends Zend_Controller_Action implements Zen
         $modelCRUD->handleDelete($this->_getModelClassName(), 'list');
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
-            $this->_addFlashMessage('', 'success', '%1$s deleted.');
+            $this->_addFlashMessage('success', '%1$s deleted.');
             $redirector->redirectAndExit();
         }
     }
