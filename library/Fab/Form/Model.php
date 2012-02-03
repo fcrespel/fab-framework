@@ -38,6 +38,7 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
         }
         
         $this->addPrefixPath('Fab_Form_Element_', 'Fab/Form/Element/', self::ELEMENT);
+        $this->addElementPrefixPath('Fab_Validate', 'Fab/Validate/', Zend_Form_Element::VALIDATE);
         
         parent::__construct($options);
     }
