@@ -14,6 +14,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         'listScript'            => 'list.phtml',
         'globalRecordActions'   => array(),
         'singleRecordActions'   => array(),
+        'noRecordMessage'       => 'Nothing was found to display',
     );
     
     /** @var Zend_Acl */

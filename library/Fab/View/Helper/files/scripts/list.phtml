@@ -13,6 +13,13 @@
             </tr>
         </thead>
         <tbody>
+            <?php if ($this->paginator->getTotalItemCount() == 0 && $this->options['noRecordMessage'] !== null) : ?>
+            <tr class="even">
+                <td colspan="<?php echo (count($this->fieldNames) + (count($this->options['singleRecordActions']) > 0 ? 1 : 0)) ?>">
+                    <?php echo $this->options['noRecordMessage'] ?>
+                </td>
+            </tr>
+            <?php else : ?>
             <?php $rowStyle = 1; ?>
             <?php foreach ($this->paginator as $record): ?>
             <tr class="<?php echo ($rowStyle ^= 1) ? 'odd' : 'even' ?>">
@@ -30,6 +37,7 @@
                 <?php endif; ?>
             </tr>
             <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
 
