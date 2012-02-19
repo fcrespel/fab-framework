@@ -285,13 +285,13 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 
         // Convert date/time to Zend_Date
         if (is_string($attr)) {
-            if (preg_match('/^\d{4}[\d\+\-Z\.]*$/', $attr)) {
+            if (!is_numeric($attr) && preg_match('/^\d{4}[\d\+\-Z\.]*$/', $attr)) {
                 $attr = new Zend_Date(Zend_Ldap_Converter::fromLdapDateTime($attr, true)->getTimestamp());
             }
         } else if (is_array($attr)) {
             $mapped = array();
             foreach ($attr as $value) {
-                if (preg_match('/^\d{4}[\d\+\-Z\.]*$/', $value)) {
+                if (!is_numeric($value) && preg_match('/^\d{4}[\d\+\-Z\.]*$/', $value)) {
                     $mapped[] = new Zend_Date(Zend_Ldap_Converter::fromLdapDateTime($value, true)->getTimestamp());
                 } else {
                     $mapped[] = $value;
@@ -352,6 +352,23 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
     {
         $this->_lazyLoad();
         return parent::setPasswordAttribute($password, $hashType, $attribName);
+    }
+    
+    /**
+     * Sets a LDAP attribute from a template (including %attribute% placeholders).
+     * @param  string $name
+     * @param  string $template
+     * @return string
+     */
+    public function setTemplateAttribute($name, $template)
+    {
+        $value = $template;
+        if (preg_match_all('/%(\w+)%/', $template, $matches)) {
+            foreach ($matches[1] as $match) {
+                $value = str_replace('%' . $match . '%', $this->getAttribute($match), $value);
+            }
+        }
+        return $this->setAttribute($name, trim($value));
     }
     
     /**
