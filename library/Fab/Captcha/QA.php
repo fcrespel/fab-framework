@@ -62,8 +62,6 @@ class Fab_Captcha_QA extends Zend_Captcha_Word
      */
     public function isValid($value, $context = null)
     {
-        error_log(json_encode($value));
-        
         if (!is_array($value) && !is_array($context)) {
             $this->_error(self::MISSING_VALUE);
             return false;
