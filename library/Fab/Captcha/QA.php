@@ -89,7 +89,11 @@ class Fab_Captcha_QA extends Zend_Captcha_Word
         $this->_id = $value['id'];
         
         $qa = $this->getWord();
-        foreach ($qa['answers'] as $answer) {
+        $answers = $qa['answers'];
+        if (is_string($answers)) {
+            $answers = explode("\n", $answers);
+        }
+        foreach ($answers as $answer) {
             $answer = preg_replace('/\s+/', ' ', trim(strtolower($answer)));
             if ($input === $answer) {
                 return true;
