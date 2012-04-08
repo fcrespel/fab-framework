@@ -58,4 +58,30 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
             }
         }
     }
+    
+    /**
+     * Save the form data
+     * @param bool $persist Save to DB or not
+     * @return Doctrine_Record
+     */
+    public function save($persist = true)
+    {
+        // Ignore password elements with empty value (to avoid removing an existing value in DB when editing)
+        $ignored = array();
+        foreach ($this->getElements() as $element) {
+            $value = $element->getValue();
+            if ($element->getType() == 'Zend_Form_Element_Password' && empty($value) && !$element->getIgnore()) {
+                $element->setIgnore(true);
+                $ignored[] = $element;
+            }
+        }
+        
+        // Save the record
+        parent::save($persist);
+        
+        // Restore ignored elements
+        foreach ($ignored as $element) {
+            $element->setIgnore(false);
+        }
+    }
 }
