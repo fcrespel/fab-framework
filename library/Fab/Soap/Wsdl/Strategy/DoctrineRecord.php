@@ -83,7 +83,7 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             $element->setAttribute('name', $fieldName);
             $element->setAttribute('type', $columnType);
             if (!isset($def['notnull']) || $def['notnull'] !== true) {
-                $element->setAttribute('nillable', 'true');
+                $element->setAttribute('minOccurs', '0');
             }
             $all->appendChild($element);
         }
@@ -101,6 +101,7 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             $element->setAttribute('name', $relation->getAlias());
             $element->setAttribute('type', $this->getContext()->getType($relationType));
             $element->setAttribute('nillable', 'true');
+            $element->setAttribute('minOccurs', '0');
             $all->appendChild($element);
         }
         

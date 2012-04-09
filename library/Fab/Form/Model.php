@@ -60,9 +60,11 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
             } else if ($element instanceof Zend_Form_Element_Multi) {
                 // Rewrite options to replace the '0' key with ''
                 $optionsOld = $element->getMultiOptions();
-                $optionsNew = array('' => '------');
+                $optionsNew = array();
                 foreach ($optionsOld as $key => $value) {
-                    if ($key != 0) {
+                    if ($key === 0 && $value === '------') {
+                        $optionsNew[''] = '------';
+                    } else {
                         $optionsNew[$key] = $value;
                     }
                 }
