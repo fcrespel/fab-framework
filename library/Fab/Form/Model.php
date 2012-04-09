@@ -44,17 +44,29 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
     }
     
     /**
-     * Parses columns to fields
+     * Generates the form
      */
-    protected function _columnsToFields()
+    protected function _generateForm()
     {
-        parent::_columnsToFields();
+        parent::_generateForm();
         foreach ($this->getElements() as $element) {
-            if ($element->getType() == 'Zend_Form_Element_Textarea') {
+            if ($element instanceof Zend_Form_Element_Textarea) {
+                // Add default rows and cols on textarea
                 if ($element->getAttrib('rows') == null)
                     $element->setAttrib('rows', 3);
                 if ($element->getAttrib('cols') == null)
                     $element->setAttrib('cols', 70);
+                
+            } else if ($element instanceof Zend_Form_Element_Multi) {
+                // Rewrite options to replace the '0' key with ''
+                $optionsOld = $element->getMultiOptions();
+                $optionsNew = array('' => '------');
+                foreach ($optionsOld as $key => $value) {
+                    if ($key != 0) {
+                        $optionsNew[$key] = $value;
+                    }
+                }
+                $element->setMultiOptions($optionsNew);
             }
         }
     }
@@ -66,13 +78,17 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
      */
     public function save($persist = true)
     {
-        // Ignore password elements with empty value (to avoid removing an existing value in DB when editing)
+        // Preprocess certain elements
         $ignored = array();
         foreach ($this->getElements() as $element) {
             $value = $element->getValue();
-            if ($element->getType() == 'Zend_Form_Element_Password' && empty($value) && !$element->getIgnore()) {
+            if ($element instanceof Zend_Form_Element_Password && empty($value) && !$element->getIgnore()) {
+                // Ignore password elements with empty value (to avoid removing an existing value in DB when editing)
                 $element->setIgnore(true);
                 $ignored[] = $element;
+            } else if ($element instanceof Zend_Form_Element_Multi && empty($value)) {
+                // Force empty values in multiselects to be NULL (to avoid foreign key contraint failures)
+                $element->setValue(null);
             }
         }
         
