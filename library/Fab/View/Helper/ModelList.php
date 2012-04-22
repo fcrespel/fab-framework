@@ -9,6 +9,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         'sortField'             => null,
         'sortDirection'         => 'asc',
         'itemsPerPage'          => 30,
+        'paginationRange'       => 10,
         'paginationStyle'       => 'Sliding',
         'paginationScript'      => 'pagination.phtml',
         'listScript'            => 'list.phtml',
@@ -112,6 +113,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         $paginator = $adapter->getPaginator($query, $sortField, $sortDirection);
         $paginator->setCurrentPageNumber($pageParam);
         $paginator->setItemCountPerPage($options['itemsPerPage']);
+        $paginator->setPageRange($options['paginationRange']);
 
         // Get the field names
         if (!isset($options['showFieldNames'])) {

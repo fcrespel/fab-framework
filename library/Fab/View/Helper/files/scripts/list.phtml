@@ -1,4 +1,16 @@
 <div class="record-modellist record-model-<?php echo $this->modelName; ?>">
+    <?php if (count($this->options['globalRecordActions']) > 0) : ?>
+    <ul class="record-global-actions">
+        <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
+            <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
+                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($urlOptions); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
+
+    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']); ?>
+
     <table class="record-list">
         <thead>
             <tr>
@@ -51,10 +63,5 @@
     </ul>
     <?php endif; ?>
 
-<?php
-$paginationControl = $this->paginationControl(
-    $this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']
-);
-echo $paginationControl;
-?>
+    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']); ?>
 </div>
