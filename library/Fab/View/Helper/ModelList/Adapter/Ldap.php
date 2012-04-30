@@ -8,7 +8,7 @@ class Fab_View_Helper_ModelList_Adapter_Ldap extends Fab_View_Helper_ModelList_A
         return $modelName::getFieldNames();
     }
 
-    public function getPaginator($query = null, $sortField = null, $sortDirection = 'asc')
+    public function getPaginator($query = null, $filter = null, $sortField = null, $sortDirection = 'asc')
     {
         $modelName = $this->_modelName;
         $records = $modelName::findAll($query, $sortField);

@@ -85,17 +85,21 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
      * @param string $modelName
      * @param array $options
      * @param mixed $query
+     * @param Zend_Form $filterForm
      * @return string
      */
-    public function modelList($modelName, array $options = array(), $query = null)
+    public function modelList($modelName, array $options = array(), $query = null, $filterForm = null)
     {
+        $request = Zend_Controller_Front::getInstance()->getRequest();
+        
         // Process options
         $context = $this->_initContext($options);
         $options = array_merge(self::$_defaultOptions, $options);
         
-        // Process request params
-        $request = Zend_Controller_Front::getInstance()->getRequest();
+        // Process page param (default to 1)
         $pageParam = $request->getParam($options['pageParamName'], 1);
+        
+        // Process sort param
         $sortParam = $request->getParam($options['sortParamName']);
         $sortField = $options['sortField'];
         $sortDirection = $options['sortDirection'];
@@ -105,12 +109,22 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
             if (isset($sortMatches[2]) && !strcasecmp($sortMatches[2], '.d'))
                 $sortDirection = 'desc';
         }
+        
+        // Process filter params
+        $filterParams = null;
+        $filterFormDisplayed = false;
+        if ($filterForm !== null && $request->isPost()) {
+            $filterFormDisplayed = true;
+            if ($filterForm->isValid($request->getPost())) {
+                $filterParams = $filterForm->getValues();
+            }
+        }
 
         // Get the model-specific adapter
         $adapter = $context->getAdapter($modelName);
 
         // Configure the paginator
-        $paginator = $adapter->getPaginator($query, $sortField, $sortDirection);
+        $paginator = $adapter->getPaginator($query, $filterParams, $sortField, $sortDirection);
         $paginator->setCurrentPageNumber($pageParam);
         $paginator->setItemCountPerPage($options['itemsPerPage']);
         $paginator->setPageRange($options['paginationRange']);
@@ -130,13 +144,15 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
 
         // Render the partial
         return $this->view->partial($options['listScript'], array(
-            'modelName'     => $modelName,
-            'fieldNames'    => $fieldNames,
-            'paginator'     => $paginator,
-            'sortField'     => $sortField,
-            'sortDirection' => $sortDirection,
-            'options'       => $options,
-            'context'       => $context,
+            'modelName'             => $modelName,
+            'fieldNames'            => $fieldNames,
+            'paginator'             => $paginator,
+            'filterForm'            => $filterForm,
+            'filterFormDisplayed'   => $filterFormDisplayed,
+            'sortField'             => $sortField,
+            'sortDirection'         => $sortDirection,
+            'options'               => $options,
+            'context'               => $context,
         ));
     }
     

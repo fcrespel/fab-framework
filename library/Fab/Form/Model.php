@@ -27,6 +27,12 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
     protected $_ignoreFields = array('created_at', 'updated_at');
     
     /**
+     * Submit button label
+     * @var string
+     */
+    protected $_submitLabel = 'Save';
+    
+    /**
      * @param array $options Options to pass to the Zend_Form constructor
      */
     public function __construct($options = null)
@@ -71,6 +77,7 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
                 $element->setMultiOptions($optionsNew);
             }
         }
+        $this->getElement('Save')->setLabel($this->_submitLabel);
     }
     
     /**

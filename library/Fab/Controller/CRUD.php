@@ -12,7 +12,10 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
     protected $_modelFieldNames;
 
     /** @var string model form used for input */
-    protected $_modelForm;
+    protected $_modelInputForm;
+    
+    /** @var string model form used for filtering results */
+    protected $_modelFilterForm;
 
     /** @var string ACL resource ID to use when checking permissions */
     protected $_modelAclResource;
@@ -70,10 +73,28 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
      * Get the model form instance to use for input.
      * @return Zend_Form
      */
-    protected function _getModelForm()
+    protected function _getModelInputForm()
     {
-        $formClass = $this->_modelForm;
-        return new $formClass();
+        $formClass = $this->_modelInputForm;
+        if ($formClass) {
+            return new $formClass();
+        } else {
+            return null;
+        }
+    }
+    
+    /**
+     * Get the model form instance to use for filtering results.
+     * @return Zend_Form
+     */
+    protected function _getModelFilterForm()
+    {
+        $formClass = $this->_modelFilterForm;
+        if ($formClass) {
+            return new $formClass();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -137,6 +158,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $this->view->modelName = $this->_getModelClassName();
         $this->view->modelListOptions = $this->_getModelListOptions();
         $this->view->modelListQuery = $this->_getModelListQuery();
+        $this->view->modelFilterForm = $this->_getModelFilterForm();
         $this->view->headTitle($this->_getModelDisplayName() . ' List');
     }
     
@@ -148,7 +170,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $modelCRUD = $this->getHelper('modelCRUD');
         $redirector = $this->getHelper('redirector');
         $exit = $redirector->getExit();
-        $form = $this->_getModelForm();
+        $form = $this->_getModelInputForm();
         
         // Ensure no existing record can be edited through this action
         $this->getRequest()->setParam($modelCRUD->getRecordIdParam(), null);
@@ -173,7 +195,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $modelCRUD = $this->getHelper('modelCRUD');
         $redirector = $this->getHelper('redirector');
         $exit = $redirector->getExit();
-        $form = $this->_getModelForm();
+        $form = $this->_getModelInputForm();
         
         // Ensure no new record can be added through this action
         if ($this->getRequest()->getParam($modelCRUD->getRecordIdParam()) == null)

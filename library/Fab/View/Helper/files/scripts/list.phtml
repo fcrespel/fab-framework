@@ -6,11 +6,20 @@
                 <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($urlOptions); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
             <?php endif; ?>
         <?php endforeach; ?>
+        <?php if (isset($this->filterForm)) : ?>
+            <li><a class="record-action record-action-filter" href="#" title="Filter">Filter</a></li>
+        <?php endif; ?>
     </ul>
     <?php endif; ?>
 
     <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']); ?>
 
+    <?php if (isset($this->filterForm)) : ?>
+    <div class="record-filter-form<?php echo $this->filterFormDisplayed ? '' : ' hidden' ?>">
+        <?php echo $this->filterForm; ?>
+    </div>
+    <?php endif; ?>
+    
     <table class="record-list">
         <thead>
             <tr>

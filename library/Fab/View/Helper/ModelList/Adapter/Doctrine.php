@@ -18,25 +18,54 @@ class Fab_View_Helper_ModelList_Adapter_Doctrine extends Fab_View_Helper_ModelLi
         return $cols;
     }
 
-    public function getPaginator($query = null, $sortField = null, $sortDirection = 'asc')
+    public function getPaginator($query = null, $filter = null, $sortField = null, $sortDirection = 'asc')
     {
+        $table = Doctrine_Core::getTable($this->_modelName);
+        
+        // Create a query if necessary
         if (!$query)
-            $query = Doctrine_Core::getTable($this->_modelName)->createQuery();
+            $query = $table->createQuery();
+        
+        // Filter query results
+        if ($filter) {
+            if (is_string($filter)) {
+                // Textual where clause
+                $query->andWhere($filter);
+            } else if (is_array($filter)) {
+                // Add each field as a where clause
+                foreach ($filter as $field => $value) {
+                    $value = (string)$value;
+                    if (strlen($value) != 0 && $table->hasField($field)) {
+                        $definition = $table->getDefinitionOf($field);
+                        if ($definition['type'] == 'string') {
+                            if (substr($value, -1) != '%') $value .= '%';
+                            $query->andWhere($field . ' LIKE ?', $value);
+                        } else {
+                            $query->andWhere($field . ' = ?', $value);
+                        }
+                    }
+                }
+            }
+        }
 
+        // Sort query results
         if ($sortField) {
             // Convert relation name to local field name
             $table = Doctrine_Core::getTable($this->_modelName);
             if ($table->hasRelation($sortField))
                 $sortField = $table->getRelation($sortField)->getLocalFieldName();
             
-            // Create the 'order by' query part
-            $orderby = $sortField;
-            if (!strcasecmp($sortDirection, 'desc'))
-                $orderby .= ' DESC';
-            
-            // Replace the existing 'order by' query part
-            $query->removeDqlQueryPart('orderby');
-            $query->orderBy($orderby);
+            // Ensure the sort field is valid
+            if ($table->hasField($sortField)) {
+                // Create the 'order by' query part
+                $orderby = $sortField;
+                if (!strcasecmp($sortDirection, 'desc'))
+                    $orderby .= ' DESC';
+
+                // Replace the existing 'order by' query part
+                $query->removeDqlQueryPart('orderby');
+                $query->orderBy($orderby);
+            }
         }
 
         $adapter = new ZFDoctrine_Paginator_Adapter_DoctrineQuery($query);
