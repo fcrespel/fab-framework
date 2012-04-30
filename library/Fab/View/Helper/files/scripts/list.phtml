@@ -1,5 +1,5 @@
 <div class="record-modellist record-model-<?php echo $this->modelName; ?>">
-    <?php if (count($this->options['globalRecordActions']) > 0) : ?>
+    <?php if (count($this->options['globalRecordActions']) > 0 || isset($this->filterForm)) : ?>
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
             <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
