@@ -60,27 +60,20 @@ class Fab_Cron
 
                 unset($children);
                 try {
+                    $log->info('[' . $mypid . '] Running ' . get_class($action));
+                    $action->setLog($log);
                     $action->lock();
                     $action->run();
-                } catch (Fab_Cron_Exception $e) {
-                    $log->err('[' . $mypid . '] ' . $e->getMessage());
                 } catch (Exception $e) {
-                    if (APPLICATION_ENV == 'development') {
-                        $log->err('[' . $mypid . '] [DEV]: ' . $e->getMessage());
-                    } else {
-                        $log->err('[' . $mypid . '] An undefined error occurred.');
-                    }
+                    $log->err('[' . $mypid . '] ' . $e->getMessage());
                 }
 
                 // Unlock regardless of results.
                 try {
                     $action->unlock();
+                    $log->info('[' . $mypid . '] Finished ' . get_class($action));
                 } catch (Exception $e) {
-                    if (APPLICATION_ENV == 'development') {
-                        $log->err('[' . $mypid . '] [DEV]: ' . $e->getMessage());
-                    } else {
-                        $log->err('[' . $mypid . '] An unlocking error occurred.');
-                    }
+                    $log->err('[' . $mypid . '] Unlocking error: ' . $e->getMessage());
                 }
 
                 // Child process doesn't need to continue; it's done its job.
