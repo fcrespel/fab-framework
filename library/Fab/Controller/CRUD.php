@@ -141,6 +141,25 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
     {
         return null;
     }
+    
+    /**
+     * Get the record requested in parameter and check ACL permission.
+     * @return Doctrine_Record
+     */
+    protected function _getRecord($redirectAction = 'list')
+    {
+        $record = $this->getHelper('modelCRUD')->handleRecord($this->_getModelClassName(), $redirectAction);
+        $resource = ($record instanceof Zend_Acl_Resource_Interface) ? $record : $this->_getModelAclResource();
+        $resourceId = ($resource instanceof Zend_Acl_Resource_Interface) ? $resource->getResourceId() : $resource;
+        $action = $this->getRequest()->getActionName();
+        
+        $allowed = Zend_Registry::get('acl')->isCurrentRoleAllowed($resource, $action);
+        if (!$allowed) {
+            throw new Fab_Acl_Permission_Exception("Access denied to resource '$resourceId' with privilege '$action'");
+        }
+        
+        return $record;
+    }
 
     /**
      * Landing page.
@@ -218,17 +237,9 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
      */
     public function deleteAction()
     {
-        $modelCRUD = $this->getHelper('modelCRUD');
-        $redirector = $this->getHelper('redirector');
-        $exit = $redirector->getExit();
-        
-        // Handle the deletion
-        $redirector->setExit(false);
-        $modelCRUD->handleDelete($this->_getModelClassName(), 'list');
-        $redirector->setExit($exit);
-        if ($redirector->getRedirectUrl() !== null) {
-            $this->_addFlashMessage('success', '%1$s deleted.');
-            $redirector->redirectAndExit();
-        }
+        $record = $this->_getRecord('list');
+        $record->delete();
+        $this->_addFlashMessage('success', '%1$s deleted.');
+        $this->_helper->redirector('list');
     }
 }
