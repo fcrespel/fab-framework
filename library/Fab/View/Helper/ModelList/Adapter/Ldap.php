@@ -27,7 +27,7 @@ class Fab_View_Helper_ModelList_Adapter_Ldap extends Fab_View_Helper_ModelList_A
                 foreach ($filter as $field => $value) {
                     $value = (string)$value;
                     if (strlen($value) != 0) {
-                        $filters[] = Zend_Ldap_Filter::begins($field, $value);
+                        $filters[] = Zend_Ldap_Filter::contains($field, $value);
                     }
                 }
             }

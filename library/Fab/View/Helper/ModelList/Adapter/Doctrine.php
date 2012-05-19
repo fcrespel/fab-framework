@@ -38,6 +38,7 @@ class Fab_View_Helper_ModelList_Adapter_Doctrine extends Fab_View_Helper_ModelLi
                     if (strlen($value) != 0 && $table->hasField($field)) {
                         $definition = $table->getDefinitionOf($field);
                         if ($definition['type'] == 'string') {
+                            if (substr($value, 0, 1) != '%') $value = '%' . $value;
                             if (substr($value, -1) != '%') $value .= '%';
                             $query->andWhere($field . ' LIKE ?', $value);
                         } else {

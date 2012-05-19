@@ -1,6 +1,6 @@
 <?php
 
-class Fab_Controller_Helper_ModelCRUD extends ZFDoctrine_Controller_Helper_ModelForm
+class Fab_Controller_Action_Helper_ModelCRUD extends ZFDoctrine_Controller_Helper_ModelForm
 {
 
     public function __construct()

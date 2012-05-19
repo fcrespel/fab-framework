@@ -125,9 +125,14 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
 
         // Configure the paginator
         $paginator = $adapter->getPaginator($query, $filterParams, $sortField, $sortDirection);
-        $paginator->setCurrentPageNumber($pageParam);
-        $paginator->setItemCountPerPage($options['itemsPerPage']);
-        $paginator->setPageRange($options['paginationRange']);
+        if (is_array($filterParams) && count($filterParams) > 0) {
+            // Filtering is enabled, disable pagination
+            $paginator->setItemCountPerPage(-1);
+        } else {
+            $paginator->setCurrentPageNumber($pageParam);
+            $paginator->setItemCountPerPage($options['itemsPerPage']);
+            $paginator->setPageRange($options['paginationRange']);
+        }
 
         // Get the field names
         if (!isset($options['showFieldNames'])) {
