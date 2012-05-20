@@ -116,7 +116,13 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         if ($filterForm !== null && $request->isPost()) {
             $filterFormDisplayed = true;
             if ($filterForm->isValid($request->getPost())) {
-                $filterParams = $filterForm->getValues();
+                $filterParams = array();
+                foreach ($filterForm->getValues() as $field => $value) {
+                    $value = (string)$value;
+                    if (strlen($value) != 0) {
+                        $filterParams[$field] = $value;
+                    }
+                }
             }
         }
 
