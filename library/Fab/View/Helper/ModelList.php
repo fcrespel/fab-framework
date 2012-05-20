@@ -8,6 +8,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         'sortParamName'         => 'sort',
         'sortField'             => null,
         'sortDirection'         => 'asc',
+        'filter'                => null,
         'itemsPerPage'          => 30,
         'paginationRange'       => 10,
         'paginationStyle'       => 'Sliding',
@@ -111,7 +112,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         }
         
         // Process filter params
-        $filterParams = null;
+        $filterParams = $options['filter'];
         $filterFormDisplayed = false;
         if ($filterForm !== null && $request->isPost()) {
             $filterFormDisplayed = true;
