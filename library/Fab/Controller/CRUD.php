@@ -200,7 +200,10 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
             $this->_addFlashMessage('success', '%1$s \'%2$s\' created.', $form->getRecord());
-            $redirector->redirectAndExit();
+            if ($redirector->getExit()) {
+                $redirector->redirectAndExit();
+            }
+            return $form->getRecord();
         }
         
         $this->view->headTitle($this->_getModelDisplayName() . ' Creation');
@@ -226,7 +229,10 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $redirector->setExit($exit);
         if ($redirector->getRedirectUrl() !== null) {
             $this->_addFlashMessage('success', '%1$s \'%2$s\' updated.', $form->getRecord());
-            $redirector->redirectAndExit();
+            if ($redirector->getExit()) {
+                $redirector->redirectAndExit();
+            }
+            return $form->getRecord();
         }
         
         $this->view->headTitle($this->_getModelDisplayName() . ' Edition');
