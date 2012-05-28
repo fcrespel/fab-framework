@@ -3,7 +3,7 @@
 class Fab_Acl extends Zend_Acl
 {
     /** @var Zend_Acl_Role_Interface|string|null current role */
-    protected $_currentRole = null;
+    protected $_currentRole = 'anonymous';
     
     /**
      * Get the current role.
