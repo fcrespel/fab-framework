@@ -10,6 +10,9 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
 
     /** @var int */
     protected $_maxFileAge = 18000;
+    
+    /** @var string[] */
+    protected $_allowedExtensions = array();
 
     /**
      * Get the upload directory name.
@@ -75,6 +78,26 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         $this->_maxFileAge = $maxFileAge;
         return $this;
     }
+    
+    /**
+     * Get the list of allowed file extensions.
+     * @return string[]
+     */
+    public function getAllowedExtensions()
+    {
+        return $this->_allowedExtensions;
+    }
+
+    /**
+     * Set the list of allowed file extensions.
+     * @param string[] $allowedExtensions
+     * @return self
+     */
+    public function setAllowedExtensions(array $allowedExtensions)
+    {
+        $this->_allowedExtensions = $allowedExtensions;
+        return $this;
+    }
 
     /**
      * Direct helper call, forwarded to handleUpload()
@@ -93,6 +116,7 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         $targetDir = $this->getUploadDir();
         $cleanupTargetDir = $this->isCleanupUploadDir();
         $maxFileAge = $this->getMaxFileAge();
+        $allowedExtensions = $this->getAllowedExtensions();
 
         // Get parameters
         $request = $this->getRequest();
@@ -102,6 +126,11 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
 
         // Clean the fileName for security reasons
         $fileName = preg_replace('/[^\w\._-]+/', '_', $fileName);
+        
+        // Make sure the file extension is allowed
+        $fileExt = pathinfo(strtolower($fileName), PATHINFO_EXTENSION);
+        if (!in_array($fileExt, $allowedExtensions))
+            throw new Fab_Controller_Action_Exception('Invalid file extension: ' . $fileName, 104);
 
         // Make sure the fileName is unique but only if chunking is disabled
         if ($chunks < 2 && file_exists($targetDir . DIRECTORY_SEPARATOR . $fileName)) {
