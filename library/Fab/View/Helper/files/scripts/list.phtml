@@ -12,7 +12,7 @@
     </ul>
     <?php endif; ?>
 
-    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']); ?>
+    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript'], $this->options); ?>
 
     <?php if (isset($this->filterForm)) : ?>
     <div class="record-filter-form<?php echo $this->filterFormDisplayed ? '' : ' hidden' ?>">
@@ -72,5 +72,5 @@
     </ul>
     <?php endif; ?>
 
-    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript']); ?>
+    <?php echo $this->paginationControl($this->paginator, $this->options['paginationStyle'], $this->options['paginationScript'], $this->options); ?>
 </div>
