@@ -15,6 +15,10 @@ class Fab_Soap_Server_Handler_Auth_WSSecurity extends Fab_Soap_Server_Handler_Au
         $this->setAuthAdapter($authAdapter);
     }
 
+    /**
+     * Method called before invoking the actual method.
+     * @param Fab_Soap_Server_MessageContext $context message context
+     */
     public function preInvoke(Fab_Soap_Server_MessageContext $context)
     {
         // Parse the Security header
@@ -33,6 +37,8 @@ class Fab_Soap_Server_Handler_Auth_WSSecurity extends Fab_Soap_Server_Handler_Au
         if (!$result->isValid()) {
             $messages = $result->getMessages();
             throw new SoapFault('wsse:FailedAuthentication', 'The security token could not be authenticated or authorized (' . $messages[0] . ')');
+        } else {
+            $this->_storeIdentity($result->getIdentity());
         }
     }
 

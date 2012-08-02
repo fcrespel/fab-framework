@@ -81,6 +81,10 @@ class Fab_Soap_Server_Handler_Auth_Http extends Fab_Soap_Server_Handler_Auth_Abs
         return $this;
     }
 
+    /**
+     * Method called before invoking the actual method.
+     * @param Fab_Soap_Server_MessageContext $context message context
+     */
     public function preInvoke(Fab_Soap_Server_MessageContext $context)
     {
         // Parse the HTTP Authorization header
@@ -97,6 +101,8 @@ class Fab_Soap_Server_Handler_Auth_Http extends Fab_Soap_Server_Handler_Auth_Abs
             $messages = $result->getMessages();
             $this->_challengeClient();
             throw new SoapFault('Receiver', 'HTTP authentication failed (' . $messages[0] . ')');
+        } else {
+            $this->_storeIdentity($result->getIdentity());
         }
     }
 
