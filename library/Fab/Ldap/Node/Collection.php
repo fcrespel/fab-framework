@@ -48,5 +48,24 @@ class Fab_Ldap_Node_Collection extends Zend_Ldap_Node_Collection
         }
         return $data;
     }
+    
+    /**
+     * Get all entries as an array
+     *
+     * @param boolean $deep if true, convert LDAP nodes to arrays as well
+     * @return array
+     */
+    public function toArray($deep = false)
+    {
+        $data = parent::toArray();
+        if ($deep) {
+            foreach ($data as $key => $value) {
+                if (is_object($value) && $value instanceof Zend_Ldap_Node) {
+                    $data[$key] = $value->toArray();
+                }
+            }
+        }
+        return $data;
+    }
 
 }
