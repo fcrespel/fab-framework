@@ -10,6 +10,9 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
     
     /** @var array */
     protected $_classmap = array();
+    
+    /** @var string */
+    protected $_namespaceUri;
 
     /**
      * Constructor.
@@ -87,13 +90,36 @@ class Fab_Soap_AutoDiscover extends Zend_Soap_AutoDiscover
     }
     
     /**
+     * Get the service namespace URI to use when generating the WSDL.
+     * @return string 
+     */
+    public function getNamespaceUri() {
+        if ($this->_namespaceUri === null) {
+            return $this->getUri();
+        } else {
+            return $this->_namespaceUri;
+        }
+    }
+
+    /**
+     * Set the service namespace URI to use when generating the WSDL.
+     * This must be called before the setClass() or addFunction() methods.
+     * @param string $namespaceUri
+     * @return self
+     */
+    public function setNamespaceUri($namespaceUri) {
+        $this->_namespaceUri = $namespaceUri;
+        return $this;
+    }
+    
+    /**
      * Get the WSDL object instance, and initialize it if necessary.
      * @return Zend_Soap_Wsdl
      */
-    public function _getWsdl()
+    protected function _getWsdl()
     {
         if ($this->_wsdl === null) {
-            $wsdl = new $this->_wsdlClass($this->getServiceName(), $this->getUri(), $this->_strategy);
+            $wsdl = new $this->_wsdlClass($this->getServiceName(), $this->getNamespaceUri(), $this->_strategy);
             $wsdl->addSchemaTypeSection(); // The wsdl:types element must precede all other elements (WS-I Basic Profile 1.1 R2023)
             $wsdl->setClassmap($this->getClassmap());
             $this->_wsdl = $wsdl;
