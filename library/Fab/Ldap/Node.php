@@ -439,6 +439,34 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
         $this->_lazyLoad();
         return parent::count();
     }
+    
+    /**
+     * Returns an array representation of the current node
+     *
+     * @param  boolean $includeSystemAttributes
+     * @return array
+     */
+    public function toArray($includeSystemAttributes = true)
+    {
+        if ($this->_isLazy) {
+            return array('dn' => $this->getDnString());
+        } else {
+            $attributes = parent::toArray($includeSystemAttributes);
+            foreach ($attributes as $attrName => $attrValue) {
+                if (is_object($attrValue) && $attrValue instanceof Zend_Ldap_Node) {
+                    $attributes[$attrName] = $attrValue->toArray();
+                } else if (is_array($attrValue)) {
+                    foreach ($attrValue as $index => $value) {
+                        if (is_object($value) && $value instanceof Zend_Ldap_Node) {
+                            $attrValue[$index] = $value->toArray();
+                        }
+                    }
+                    $attributes[$attrName] = $attrValue;
+                }
+            }
+            return $attributes;
+        }
+    }
 
     /**
      * Factory method to create an attached Fab_Ldap_Node for a given DN.

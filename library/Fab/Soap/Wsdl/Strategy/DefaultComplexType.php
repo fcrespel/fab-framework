@@ -32,7 +32,7 @@ class Fab_Soap_Wsdl_Strategy_DefaultComplexType extends Zend_Soap_Wsdl_Strategy_
                 $properties[$propertyName] = array('name' => $propertyName);
                 foreach ($propertyTypes as $propertyType) {
                     if ($propertyType == 'null') {
-                        $properties[$propertyName]['nillable'] = 'true';
+                        $properties[$propertyName]['minOccurs'] = '0';
                     } else if (!isset($properties[$propertyName]['type'])) {
                         $properties[$propertyName]['type'] = $this->getContext()->getType($propertyType);
                     }
