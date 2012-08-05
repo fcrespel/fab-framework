@@ -58,6 +58,8 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             $fieldName = $table->getFieldName($columnName);
             switch ($def['type']) {
                 case 'enum':
+                    $columnType = $this->_createEnumType($table->getEnumValues($fieldName));
+                    break;
                 case 'text':
                     $columnType = 'xsd:string';
                     break;
@@ -81,7 +83,11 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             
             $element = $dom->createElement('xsd:element');
             $element->setAttribute('name', $fieldName);
-            $element->setAttribute('type', $columnType);
+            if (is_string($columnType)) {
+                $element->setAttribute('type', $columnType);
+            } else if ($columnType instanceof DOMElement) {
+                $element->appendChild($columnType);
+            }
             if (!isset($def['notnull']) || $def['notnull'] !== true) {
                 $element->setAttribute('minOccurs', '0');
             }
@@ -112,5 +118,25 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
 
         unset($this->_inProcess[$type]);
         return "tns:$mappedType";
+    }
+    
+    /**
+     * Create an enumerated type for a set of values.
+     * @param array $enumValues
+     * @return DOMElement 
+     */
+    protected function _createEnumType($enumValues)
+    {
+        $dom = $this->getContext()->toDomDocument();
+        $simpleType = $dom->createElement('xsd:simpleType');
+        $restriction = $dom->createElement('xsd:restriction');
+        $restriction->setAttribute('base', 'xsd:string');
+        foreach ($enumValues as $enumValue) {
+            $enumeration = $dom->createElement('xsd:enumeration');
+            $enumeration->setAttribute('value', $enumValue);
+            $restriction->appendChild($enumeration);
+        }
+        $simpleType->appendChild($restriction);
+        return $simpleType;
     }
 }
