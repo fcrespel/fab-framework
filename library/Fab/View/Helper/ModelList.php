@@ -4,6 +4,8 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
 {
     /** @var array */
     protected static $_defaultOptions = array(
+        'idParamName'           => 'id',
+        'idParamField'          => null,
         'pageParamName'         => 'page',
         'sortParamName'         => 'sort',
         'sortField'             => null,
@@ -59,7 +61,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         parent::setView($view);
         $oid = spl_object_hash($view);
         if (!isset(self::$_enabledView[$oid])) {
-            $view->addBasePath(dirname(__FILE__) . '/files');
+            $view->addBasePath(dirname(__FILE__) . '/ModelList/views');
             self::$_enabledView[$oid] = true;
         }
     }

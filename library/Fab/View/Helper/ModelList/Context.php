@@ -26,6 +26,12 @@ class Fab_View_Helper_ModelList_Context
     /** @var array */
     protected $_decorators = array();
     
+    /** @var string */
+    protected $_idParamName = 'id';
+    
+    /** @var string */
+    protected $_idParamField = null;
+    
     /**
      * Construct a new context with the given options.
      */
@@ -55,6 +61,10 @@ class Fab_View_Helper_ModelList_Context
             $this->addAdapters($options['adapters']);
         if (isset($options['decorators']))
             $this->addDecorators($options['decorators']);
+        if (isset($options['idParamName']))
+            $this->setIdParamName($options['idParamName']);
+        if (isset($options['idParamField']))
+            $this->setIdParamField($options['idParamField']);
         return $this;
     }
     
@@ -76,6 +86,27 @@ class Fab_View_Helper_ModelList_Context
             return true;
         else
             return $acl->isAllowed($this->getRole(), $resource, $privilege);
+    }
+    
+    /**
+     * Get record action parameters suitable for use with the URL view helper.
+     * @param mixed $record
+     * @param array $params
+     * @return array
+     */
+    public function getRecordActionParams($record, $params = array())
+    {
+        $idParamName = $this->getIdParamName();
+        if (empty($idParamName))
+            $idParamName = 'id';
+        
+        $idParamField = $this->getIdParamField();
+        if (empty($idParamField))
+            $idParamValue = $record->identifier();
+        else
+            $idParamValue = $record->$idParamField;
+        
+        return array_merge($params, array($idParamName => $idParamValue));
     }
     
     /**
@@ -325,5 +356,41 @@ class Fab_View_Helper_ModelList_Context
     {
         $this->_decorators = array_merge($decorators, $this->_decorators);
         return $this;
+    }
+    
+    /**
+     * Get the record identifier URL parameter name.
+     * @return string
+     */
+    public function getIdParamName()
+    {
+        return $this->_idParamName;
+    }
+
+    /**
+     * Set the record identifier URL parameter name.
+     * @param string $idParamName
+     */
+    public function setIdParamName($idParamName)
+    {
+        $this->_idParamName = $idParamName;
+    }
+
+    /**
+     * Get the record identifier URL parameter value field.
+     * @return type
+     */
+    public function getIdParamField()
+    {
+        return $this->_idParamField;
+    }
+
+    /**
+     * Set the record identifier URL parameter value field.
+     * @param string $idParamField
+     */
+    public function setIdParamField($idParamField)
+    {
+        $this->_idParamField = $idParamField;
     }
 }
