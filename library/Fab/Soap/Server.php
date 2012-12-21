@@ -164,5 +164,77 @@ class Fab_Soap_Server extends Zend_Soap_Server
         return $server;
     }
 
+    /**
+     * Handle a request
+     *
+     * Instantiates SoapServer object with options set in object, and
+     * dispatches its handle() method.
+     *
+     * $request may be any of:
+     * - DOMDocument; if so, then cast to XML
+     * - DOMNode; if so, then grab owner document and cast to XML
+     * - SimpleXMLElement; if so, then cast to XML
+     * - stdClass; if so, calls __toString() and verifies XML
+     * - string; if so, verifies XML
+     *
+     * If no request is passed, pulls request using php:://input (for
+     * cross-platform compatability purposes).
+     *
+     * @param DOMDocument|DOMNode|SimpleXMLElement|stdClass|string $request Optional request
+     * @return void|string
+     */
+    public function handle($request = null)
+    {
+        if (null === $request) {
+            $request = file_get_contents('php://input');
+        }
+
+        // Set Zend_Soap_Server error handler
+        $displayErrorsOriginalState = $this->_initializeSoapErrorContext();
+
+        $setRequestException = null;
+        /**
+         * @see Zend_Soap_Server_Exception
+         */
+        // require_once 'Zend/Soap/Server/Exception.php';
+        try {
+            $this->_setRequest($request);
+        } catch (Zend_Soap_Server_Exception $e) {
+            $setRequestException = $e;
+        }
+        
+        $soap = $this->_getSoap();
+
+        $fault = false;
+        ob_start();
+        if ($setRequestException instanceof Exception) {
+            // Create SOAP fault message if we've caught a request exception
+            $fault = $this->fault($setRequestException->getMessage(), 'Sender');
+        } else {
+            try {
+                $soap->handle($this->_request);
+            } catch (Exception $e) {
+                $fault = $this->fault($e);
+            }
+        }
+
+        // Send a fault, if we have one (fix for ZF-12393)
+        if ($fault) {
+            $soap->fault($fault->faultcode, $fault->faultstring);
+        }
+
+        $this->_response = ob_get_clean();
+
+        // Restore original error handler
+        restore_error_handler();
+        ini_set('display_errors', $displayErrorsOriginalState);
+
+        if (!$this->_returnResponse) {
+            echo $this->_response;
+            return;
+        }
+
+        return $this->_response;
+    }
 
 }
