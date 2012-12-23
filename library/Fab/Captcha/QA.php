@@ -75,28 +75,30 @@ class Fab_Captcha_QA extends Zend_Captcha_Word
             $value = $value[$name];
         }
 
-        if (!isset($value['input'])) {
+        if (!isset($value['input']) || empty($value['input'])) {
             $this->_error(self::MISSING_VALUE);
             return false;
         }
         $input = preg_replace('/\s+/', ' ', trim(strtolower($value['input'])));
         $this->_setValue($input);
 
-        if (!isset($value['id'])) {
+        if (!isset($value['id']) || empty($value['id'])) {
             $this->_error(self::MISSING_ID);
             return false;
         }
         $this->_id = $value['id'];
         
         $qa = $this->getWord();
-        $answers = $qa['answers'];
-        if (is_string($answers)) {
-            $answers = explode("\n", $answers);
-        }
-        foreach ($answers as $answer) {
-            $answer = preg_replace('/\s+/', ' ', trim(strtolower($answer)));
-            if ($input === $answer) {
-                return true;
+        if (!empty($qa)) {
+            $answers = $qa['answers'];
+            if (is_string($answers)) {
+                $answers = explode("\n", $answers);
+            }
+            foreach ($answers as $answer) {
+                $answer = preg_replace('/\s+/', ' ', trim(strtolower($answer)));
+                if ($input === $answer) {
+                    return true;
+                }
             }
         }
         
