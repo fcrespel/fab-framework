@@ -21,7 +21,11 @@ class Fab_View_Helper_ModelList_Decorator_Link extends Fab_View_Helper_ModelList
         
         $urlOpts = $this->getUrlOptions();
         foreach ($this->getFieldMap() as $paramField => $paramName) {
-            $urlOpts[$paramName] = $fieldValue->$paramField;
+            if ($paramField == '$this') {
+                $urlOpts[$paramName] = strval($fieldValue);
+            } else {
+                $urlOpts[$paramName] = $fieldValue->$paramField;
+            }
         }
         $url = $this->view->url($urlOpts, null, true);
         return '<a href="' . $url . '">' . $this->view->escape((string)$fieldValue) . '</a>';
