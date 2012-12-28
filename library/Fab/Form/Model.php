@@ -18,6 +18,7 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
         'date' => 'text',
         'enum' => 'select',
         'text' => 'textarea',
+        'bit' => 'text',
     );
     
     /**

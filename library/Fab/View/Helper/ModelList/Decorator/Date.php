@@ -9,7 +9,7 @@ class Fab_View_Helper_ModelList_Decorator_Date extends Fab_View_Helper_ModelList
     protected $_displayFormat = 'yyyy-MM-dd HH:mm';
     
     /** @var string */
-    protected $tooltipFormat = 'yyyy-MM-dd HH:mm:ss';
+    protected $_tooltipFormat = 'yyyy-MM-dd HH:mm:ss';
     
     /** @var bool */
     protected $_showTooltip = false;
@@ -24,6 +24,9 @@ class Fab_View_Helper_ModelList_Decorator_Date extends Fab_View_Helper_ModelList
     {
         if (empty($fieldValue))
             return $fieldValue;
+        
+        if ($this->getSourceFormat() == 'UU')
+            $fieldValue = intval($fieldValue / 1000);
         
         $date = new Zend_Date($fieldValue, $this->getSourceFormat());
         $ret = $this->view->escape($date->toString($this->getDisplayFormat()));
@@ -79,7 +82,7 @@ class Fab_View_Helper_ModelList_Decorator_Date extends Fab_View_Helper_ModelList
      */
     public function getTooltipFormat()
     {
-        return $this->tooltipFormat;
+        return $this->_tooltipFormat;
     }
 
     /**
@@ -89,7 +92,7 @@ class Fab_View_Helper_ModelList_Decorator_Date extends Fab_View_Helper_ModelList
      */
     public function setTooltipFormat($tooltipFormat)
     {
-        $this->tooltipFormat = $tooltipFormat;
+        $this->_tooltipFormat = $tooltipFormat;
         return $this;
     }
 
