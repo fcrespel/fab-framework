@@ -2,15 +2,18 @@
 
 class Fab_Auth_Adapter_Composite extends Fab_Auth_Adapter_Abstract
 {
-    /** @var Zend_Auth_Adapter_Interface[] */
+    /** @var array */
     protected $_adapters = array();
+    
+    /** @var string */
+    protected $_successAdapterName = null;
 
     /** @var Zend_Auth_Adapter_Interface */
     protected $_successAdapter = null;
 
     /**
-     * Get the array of adapters to use for authentication.
-     * @return Zend_Auth_Adapter_Interface[]
+     * Get the associative array of adapters to use for authentication.
+     * @return array
      */
     public function getAdapters()
     {
@@ -18,26 +21,27 @@ class Fab_Auth_Adapter_Composite extends Fab_Auth_Adapter_Abstract
     }
 
     /**
-     * Get the array of adapters to use for authentication.
-     * @param Zend_Auth_Adapter_Interface[] $adapters
+     * Set the associative array of adapters to use for authentication.
+     * @param array $adapters
      */
-    public function setAdapters($adapters)
+    public function setAdapters(array $adapters)
     {
         $this->_adapters = $adapters;
     }
 
     /**
      * Add an adapter to use for authentication.
+     * @param string $name
      * @param Zend_Auth_Adapter_Interface $adapter
      */
-    public function addAdapter($adapter)
+    public function addAdapter($name, $adapter)
     {
-        $this->_adapters[] = $adapter;
+        $this->_adapters[$name] = $adapter;
     }
     
     /**
      * Get the authentication source adapter (only in case of success).
-     * @return Zend_Auth_Adapter_Interface
+     * @return Zend_Auth_Adapter_Interface|null
      */
     public function getAuthSourceAdapter()
     {
@@ -50,18 +54,18 @@ class Fab_Auth_Adapter_Composite extends Fab_Auth_Adapter_Abstract
      */
     public function getAuthSourceName()
     {
-        return $this->_successAdapter !== null ? get_class($this->_successAdapter) : null;
+        return $this->_successAdapterName;
     }
 
     /**
      * Get the authenticated account object, if available.
      * The exact return value depends on the backing authentication adapter.
-     * @return object|null
+     * @return object|boolean
      */
     public function getAccountObject()
     {
         if ($this->_successAdapter === null)
-            return null;
+            return false;
 
         $methods = array('getAccountObject', 'getResultRowObject');
         foreach ($methods as $method) {
@@ -69,7 +73,7 @@ class Fab_Auth_Adapter_Composite extends Fab_Auth_Adapter_Abstract
                 return $this->_successAdapter->$method();
             }
         }
-        return null;
+        return false;
     }
 
     /**
@@ -80,13 +84,14 @@ class Fab_Auth_Adapter_Composite extends Fab_Auth_Adapter_Abstract
     {
         $this->_validateParams();
         $result = new Zend_Auth_Result(Zend_Auth_Result::FAILURE, '', array('No authentication adapter provided in ' . get_class()));
-        foreach ($this->_adapters as $adapter) {
+        foreach ($this->_adapters as $name => $adapter) {
             $adapter->setIdentity($this->_identity);
             $adapter->setCredential($this->_credential);
             $result = $adapter->authenticate();
             if ($result->getCode() == Zend_Auth_Result::SUCCESS) {
                 // Break on success
                 $this->_successAdapter = $adapter;
+                $this->_successAdapterName = $name;
                 break;
             } else if ($result->getCode() != Zend_Auth_Result::FAILURE_IDENTITY_NOT_FOUND) {
                 // Break on failure not due to identity not found
