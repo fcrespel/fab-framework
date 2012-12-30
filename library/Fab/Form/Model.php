@@ -68,6 +68,9 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
                 // Rewrite options to replace the '0' key with ''
                 $optionsOld = $element->getMultiOptions();
                 $optionsNew = array();
+                if (!$element->isRequired()) {
+                    $optionsNew[''] = '------';
+                }
                 foreach ($optionsOld as $key => $value) {
                     if ($key === 0 && $value === '------') {
                         $optionsNew[''] = '------';
