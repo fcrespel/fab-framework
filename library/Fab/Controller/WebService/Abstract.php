@@ -131,5 +131,30 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         $server->setClass($this->_getServiceClass());
         return $server;
     }
+    
+    /**
+     * Get the request body, taking the Content-Encoding header into account.
+     * This will effectively uncompress a gzip- or deflate-encoded request.
+     * @return string
+     */
+    protected function _getRequestBody()
+    {
+        $encoding = $this->getRequest()->getHeader('Content-Encoding');
+        switch ($encoding) {
+            case 'gzip':
+                $requestBody = file_get_contents('compress.zlib://php://input');
+                break;
+            case 'deflate':
+                $fh = fopen('php://input', 'rb');
+                stream_filter_append($fh, 'zlib.inflate', STREAM_FILTER_READ, array('window' => 15));
+                $requestBody = stream_get_contents($fh);
+                fclose($fh);
+                break;
+            default:
+                $requestBody = file_get_contents('php://input');
+                break;
+        }
+        return $requestBody;
+    }
 
 }

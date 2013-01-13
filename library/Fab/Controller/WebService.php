@@ -112,7 +112,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     public function soapAction()
     {
         // Let Zend_Soap_Server handle the request
-        $this->_getSoapServer()->handle();
+        $this->_getSoapServer()->handle($this->_getRequestBody());
         
         // Content-Type header already added by ext_soap, avoid duplicate
         $this->getResponse()->clearHeader('Content-Type');
