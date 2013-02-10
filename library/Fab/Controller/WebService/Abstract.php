@@ -118,6 +118,7 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         $server->setClass($this->_getServiceClass());
         $server->setClassmap($this->_getClassmap());
         $server->setAutoDiscover($this->_getAutoDiscover());
+        $server->setReturnResponse(true);
         return $server;
     }
 
@@ -129,6 +130,7 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
     {
         $server = new Zend_Rest_Server();
         $server->setClass($this->_getServiceClass());
+        $server->returnResponse(true);
         return $server;
     }
     
@@ -140,8 +142,8 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
     protected function _getRequestBody()
     {
         $request = $this->getRequest();
-        $contentEncoding = $request->getHeader('Content-Encoding');
         $contentType = $request->getServer('CONTENT_TYPE');
+        $contentEncoding = $request->getHeader('Content-Encoding');
         
         if ($contentEncoding == 'gzip' || $contentType == 'application/x-gzip') {
             // GZIP-compressed request
@@ -158,6 +160,43 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         }
         
         return $requestBody;
+    }
+    
+    /**
+     * Set the response body, taking the Content-Type and Accept-Encoding headers into account.
+     * This will effectively compress the response using gzip or deflate, if requested.
+     * @param string $responseBody response body
+     * @param string $contentType response default content type, without compression
+     */
+    protected function _setResponseBody($responseBody, $contentType = 'application/xml; charset=UTF-8')
+    {
+        $request = $this->getRequest();
+        $response = $this->getResponse();
+        $contentType = $request->getServer('CONTENT_TYPE');
+        $acceptEncoding = $request->getHeader('Accept-Encoding');
+        $acceptEncodings = $acceptEncoding ? preg_split('/[\s,]+/', $acceptEncoding) : array();
+        
+        // Set the default Content-Type
+        $response->setHeader('Content-Type', $contentType, true);
+        
+        if (in_array('gzip', $acceptEncodings) || $contentType == 'application/x-gzip') {
+            // GZIP-compressed response
+            $responseBody = gzencode($responseBody, 9);
+            if ($contentType == 'application/x-gzip') {
+                $response->setHeader('Content-Type', 'application/x-gzip', true);
+            } else {
+                $response->setHeader('Content-Encoding', 'gzip', true);
+                $response->setHeader('Vary', 'Accept-Encoding', true);
+            }
+        } else if (in_array('deflate', $acceptEncodings)) {
+            // DEFLATE-compressed response
+            $responseBody = gzcompress($responseBody, 9);
+            $response->setHeader('Content-Encoding', 'deflate', true);
+            $response->setHeader('Vary', 'Accept-Encoding', true);
+        }
+        
+        $response->setBody($responseBody);
+        $response->setHeader('Content-Length', strlen($responseBody), true);
     }
 
 }

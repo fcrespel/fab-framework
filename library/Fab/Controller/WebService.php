@@ -112,10 +112,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     public function soapAction()
     {
         // Let Zend_Soap_Server handle the request
-        $this->_getSoapServer()->handle($this->_getRequestBody());
-        
-        // Content-Type header already added by ext_soap, avoid duplicate
-        $this->getResponse()->clearHeader('Content-Type');
+        $this->_setResponseBody($this->_getSoapServer()->handle($this->_getRequestBody()));
         
         // Bypass view renderer for performance optimization
         $this->_helper->viewRenderer->setNoRender();
@@ -127,10 +124,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     public function restAction()
     {
         // Let Zend_Rest_Server handle the request
-        $this->_getRestServer()->handle();
-        
-        // Content-Type header already added by REST server, avoid duplicate
-        $this->getResponse()->clearHeader('Content-Type');
+        $this->_setResponseBody($this->_getRestServer()->handle());
         
         // Bypass view renderer for performance optimization
         $this->_helper->viewRenderer->setNoRender();
