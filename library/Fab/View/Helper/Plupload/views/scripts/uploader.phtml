@@ -1,0 +1,111 @@
+<!-- Plupload -->
+<script type="text/javascript">
+jQuery('#<?php echo $this->dropElement ?>')
+.bind('dragenter',  function(e) { jQuery(this).addClass('dragover'); })
+.bind('dragleave', function(e) { jQuery(this).removeClass('dragover'); })
+.bind('drop', function(e) { jQuery(this).removeClass('dragover'); });
+
+jQuery(function() {
+    function updateStatus(file) {
+        var status = 'unknown';
+        switch (file.status) {
+            case plupload.QUEUED:
+                status = 'queued';
+                break;
+            case plupload.UPLOADING:
+                status = 'uploading';
+                break;
+            case plupload.DONE:
+                status = 'done';
+                break;
+            case plupload.FAILED:
+                status = 'failed';
+                break;
+        }
+        jQuery('#' + file.id).attr('class', 'upload-file upload-status-' + status);
+    }
+    
+    function updateProgress(file) {
+        jQuery('#' + file.id + '-progress').html(file.percent + "%");
+    }
+    
+    function updateError(file, code, message) {
+        if (code != 0) message += ' (code: ' + code + ')';
+        jQuery('#' + file.id).attr('class', 'upload-file upload-status-failed');
+        jQuery('#' + file.id + '-progress').addClass('error').html(message);
+    }
+    
+    var uploader = new plupload.Uploader({
+        runtimes: '<?php echo implode(',', $this->runtimes) ?>',
+        browse_button: '<?php echo $this->browseButton ?>',
+        container: '<?php echo $this->container ?>',
+        drop_element: '<?php echo $this->dropElement ?>',
+        max_file_size: '<?php echo $this->maxFileSize ?>b',
+        multi_selection: <?php echo $this->multiSelection ? 'true' : 'false' ?>,
+        url: '<?php echo $this->url ?>',
+        flash_swf_url: '<?php echo $this->flashSwfUrl ?>',
+        silverlight_xap_url: '<?php echo $this->silverlightXapUrl ?>',
+        filters : <?php echo json_encode($this->filters) ?>
+    });
+
+    uploader.bind('Init', function(up, params) {
+        jQuery('#<?php echo $this->errorList ?>').empty();
+        if (!up.features.dragdrop) jQuery('#<?php echo $this->dropElement ?>').hide();
+    });
+
+    uploader.init();
+
+    uploader.bind('FilesAdded', function(up, files) {
+        $.each(files, function(i, file) {
+            jQuery('#<?php echo $this->fileList ?>').append(
+                '<li id="' + file.id + '" class="upload-file upload-status-queued">' +
+                '<span id="' + file.id + '-filename" class="upload-filename">' + file.name + '</span> ' +
+                '<span id="' + file.id + '-filesize" class="upload-filesize">' + plupload.formatSize(file.size) + '</span> ' +
+                '<span id="' + file.id + '-progress" class="upload-progress"></span>' +
+                '</li>'
+            );
+        });
+        up.refresh(); // Reposition Flash/Silverlight
+        up.start();   // Start automatically
+    });
+    
+    uploader.bind('UploadFile', function(up, file) {
+        updateStatus(file);
+    });
+
+    uploader.bind('UploadProgress', function(up, file) {
+        updateProgress(file);
+    });
+
+    uploader.bind('Error', function(up, err) {
+        if (err.file) {
+            if (jQuery('#' + err.file.id).length > 0) {
+                updateStatus(err.file);
+                updateError(err.file, err.code, err.message);
+            } else if (err.code == plupload.FILE_SIZE_ERROR) {
+                jQuery('#<?php echo $this->errorList ?>').append('<li>File too large: ' + err.file.name + '</li>');
+            } else if (err.code == plupload.FILE_EXTENSION_ERROR) {
+                jQuery('#<?php echo $this->errorList ?>').append('<li>Invalid file extension: ' + err.file.name + '</li>');
+            } else {
+                jQuery('#<?php echo $this->errorList ?>').append('<li>' + err.message + ' (code: ' + err.code + ', file: ' + err.file.name + ')</li>');
+            }
+        } else {
+            jQuery('#<?php echo $this->errorList ?>').append('<li>' + err.message + ' (code: ' + err.code + ')</li>');
+        }
+        up.refresh(); // Reposition Flash/Silverlight
+    });
+
+    uploader.bind('FileUploaded', function(up, file, info) {
+        updateStatus(file);
+        jQuery('#' + file.id + '-progress').empty();
+        if (info.response) {
+            var response = $.parseJSON(info.response);
+            if (response.error) {
+                updateError(file, response.error.code, response.error.message);
+            } else if (response.result) {
+                jQuery('#' + file.id + '-progress').html(response.result);
+            }
+        }
+    });
+});
+</script>
