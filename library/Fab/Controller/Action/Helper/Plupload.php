@@ -11,6 +11,9 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
     /** @var int */
     protected $_maxFileAge = 18000;
     
+    /** @var int */
+    protected $_maxFileSize = 0;
+    
     /** @var string[] */
     protected $_allowedExtensions = array();
 
@@ -78,6 +81,26 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         $this->_maxFileAge = $maxFileAge;
         return $this;
     }
+
+    /**
+     * Get the maximum file size.
+     * @return int
+     */
+    public function getMaxFileSize()
+    {
+        return $this->_maxFileSize;
+    }
+
+    /**
+     * Set the maximum file size.
+     * @param int $maxFileSize
+     * @return self 
+     */
+    public function setMaxFileSize($maxFileSize)
+    {
+        $this->_maxFileSize = $maxFileSize;
+        return $this;
+    }
     
     /**
      * Get the list of allowed file extensions.
@@ -116,6 +139,7 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         $targetDir = $this->getUploadDir();
         $cleanupTargetDir = $this->isCleanupUploadDir();
         $maxFileAge = $this->getMaxFileAge();
+        $maxFileSize = $this->getMaxFileSize();
         $allowedExtensions = $this->getAllowedExtensions();
 
         // Get parameters
@@ -170,7 +194,7 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         // Look for the content type header
         $contentType = $request->getServer('CONTENT_TYPE', $request->getServer('HTTP_CONTENT_TYPE'));
 
-        // Handle non multipart uploads older WebKit versions didn't support multipart in HTML5
+        // Handle non multipart uploads (older WebKit versions didn't support multipart in HTML5)
         if (strpos($contentType, "multipart") !== false) {
             if (isset($_FILES['file']['tmp_name']) && is_uploaded_file($_FILES['file']['tmp_name'])) {
                 // Open temp file
@@ -219,6 +243,12 @@ class Fab_Controller_Action_Helper_Plupload extends Zend_Controller_Action_Helpe
         if (!$chunks || $chunk == $chunks - 1) {
             // Strip the temp .part suffix off 
             rename("{$filePath}.part", $filePath);
+            
+            // Check the final file size
+            if ($maxFileSize > 0 && filesize($filePath) > $maxFileSize) {
+                @unlink($filePath);
+                throw new Fab_Controller_Action_Exception('File too large: ' . $fileName, 105);
+            }
         }
 
         return array(
