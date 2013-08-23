@@ -4,6 +4,12 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
 {
     /** @var string model class name */
     protected $_modelClassName;
+    
+    /** @var string model id request param name */
+    protected $_modelIdParamName = 'id';
+    
+    /** @var string model id record field name */
+    protected $_modelIdFieldName;
 
     /** @var string model display name */
     protected $_modelDisplayName;
@@ -41,7 +47,25 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
     {
         return $this->_modelClassName;
     }
+    
+    /**
+     * Get the model ID request param name.
+     * @return string
+     */
+    protected function _getModelIdParamName()
+    {
+        return $this->_modelIdParamName;
+    }
 
+    /**
+     * Get the model ID record field name.
+     * @return string
+     */
+    protected function _getModelIdFieldName()
+    {
+        return $this->_modelIdFieldName;
+    }
+    
     /**
      * Get the model display name.
      * @return string
@@ -113,6 +137,8 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
     protected function _getModelListOptions()
     {
         $options = array(
+            'idParamName'           => $this->_getModelIdParamName(),
+            'idParamField'          => $this->_getModelIdFieldName(),
             'resource'              => $this->_getModelAclResource(),
             'showFieldNames'        => $this->_getModelFieldNames(),
             'fieldLabels'           => $this->_getModelFieldLabels(),
@@ -143,12 +169,23 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
     }
     
     /**
+     * Get the ModelCRUD action helper.
+     * @return Fab_Controller_Action_Helper_ModelCRUD
+     */
+    protected function _getModelCRUDHelper()
+    {
+        return $this->getHelper('modelCRUD')
+                    ->setRecordIdParam($this->_getModelIdParamName())
+                    ->setRecordIdField($this->_getModelIdFieldName());
+    }
+    
+    /**
      * Get the record requested in parameter and check ACL permission.
      * @return Doctrine_Record
      */
     protected function _getRecord($redirectAction = 'list')
     {
-        $record = $this->getHelper('modelCRUD')->handleRecord($this->_getModelClassName(), $redirectAction);
+        $record = $this->_getModelCRUDHelper()->handleRecord($this->_getModelClassName(), $redirectAction);
         $resource = ($record instanceof Zend_Acl_Resource_Interface) ? $record : $this->_getModelAclResource();
         $resourceId = ($resource instanceof Zend_Acl_Resource_Interface) ? $resource->getResourceId() : $resource;
         $action = $this->getRequest()->getActionName();
@@ -186,7 +223,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
      */
     public function addAction()
     {
-        $modelCRUD = $this->getHelper('modelCRUD');
+        $modelCRUD = $this->_getModelCRUDHelper();
         $redirector = $this->getHelper('redirector');
         $exit = $redirector->getExit();
         $form = $this->_getModelInputForm();
@@ -214,7 +251,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
      */
     public function editAction()
     {
-        $modelCRUD = $this->getHelper('modelCRUD');
+        $modelCRUD = $this->_getModelCRUDHelper();
         $redirector = $this->getHelper('redirector');
         $exit = $redirector->getExit();
         $form = $this->_getModelInputForm();
