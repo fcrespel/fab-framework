@@ -12,7 +12,7 @@ class Fab_Application_Resource_Zfdebug extends Zend_Application_Resource_Resourc
             $plugins = $options['plugins'];
         } else {
             // Configure default plugins
-            $plugins = array('Variables');
+            $plugins = array('Variables', 'Constants');
             
             // Add Doctrine plugin
             if ($bootstrap->hasResource('doctrine')) {
