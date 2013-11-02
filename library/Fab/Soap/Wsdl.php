@@ -35,6 +35,20 @@ class Fab_Soap_Wsdl extends Zend_Soap_Wsdl
         else
             return $type;
     }
+    
+    /**
+     * Get an XSD type for the given PHP type.
+     * @param string $type PHP type to get the XSD type for
+     * @return string
+     */
+    public function getType($type) {
+        switch (strtolower($type)) {
+            case 'zend_date':
+                return 'xsd:dateTime';
+            default:
+                return parent::getType($type);
+        }
+    }
 
     /**
      * Add a {@link http://www.w3.org/TR/wsdl#_types types} data type definition.
