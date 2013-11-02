@@ -461,8 +461,8 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
                     foreach ($attrValue as $index => $value) {
                         if (is_object($value) && $value instanceof Zend_Ldap_Node) {
                             $attrValue[$index] = $value->toArray();
-                        } else if (is_object($attrValue) && $attrValue instanceof Zend_Date) {
-                            $attrValue[$index] = $attrValue->toString(Zend_Date::ISO_8601);
+                        } else if (is_object($value) && $value instanceof Zend_Date) {
+                            $attrValue[$index] = $value->toString(Zend_Date::ISO_8601);
                         }
                     }
                     $attributes[$attrName] = $attrValue;
