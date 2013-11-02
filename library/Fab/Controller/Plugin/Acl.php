@@ -16,8 +16,8 @@ class Fab_Controller_Plugin_Acl extends Zend_Controller_Plugin_Abstract
         $module = $request->getModuleName();
         $controller = $request->getControllerName();
 
-        $resource = ($module == $front->getDefaultModule()) ? $controller : "$module:$controller";
-        $privilege = $request->getActionName();
+        $resource = strtolower(($module == $front->getDefaultModule()) ? $controller : "$module:$controller");
+        $privilege = strtolower($request->getActionName());
 
         if ($acl !== null && $acl->has($resource) && !$acl->isCurrentRoleAllowed($resource, $privilege)) {
             throw new Fab_Acl_Permission_Exception("Access denied to resource '$resource' with privilege '$privilege'");

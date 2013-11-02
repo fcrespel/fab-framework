@@ -1,0 +1,78 @@
+<?php
+
+class Fab_Controller_Plugin_Auth_Http extends Zend_Controller_Plugin_Abstract
+{
+    /**
+     * Called before Zend_Controller_Front enters its dispatch loop.
+     *
+     * @param  Zend_Controller_Request_Abstract $request
+     * @return void
+     */
+    public function dispatchLoopStartup(Zend_Controller_Request_Abstract $request)
+    {
+        // Parse the HTTP Authorization header
+        $creds = $this->_parseHeader();
+        if ($creds !== null) {
+            // Fill the authentication adapter
+            $authAdapter = $this->_getAuthAdapter();
+            $authAdapter->setIdentity($creds[0]);
+            $authAdapter->setCredential($creds[1]);
+
+            // Perform authentication
+            $result = $authAdapter->authenticate();
+            if ($result->isValid()) {
+                $this->_storeIdentity($result->getIdentity());
+            }
+        }
+    }
+
+    /**
+     * 
+     * @return Zend_Auth_Adapter_Interface
+     */
+    protected function _getAuthAdapter()
+    {
+        $front = Zend_Controller_Front::getInstance();
+        return $front->getParam('bootstrap')->getResource('authAdapter');
+    }
+
+    /**
+     * Parse the HTTP Authorization header.
+     * @return array
+     */
+    protected function _parseHeader()
+    {
+        $authHeader = $this->getRequest()->getHeader('Authorization');
+        if (!$authHeader) {
+            return null;
+        }
+
+        list($clientScheme) = explode(' ', $authHeader);
+        $clientScheme = strtolower($clientScheme);
+        if ($clientScheme != 'basic') {
+            return null;
+        }
+
+        $auth = substr($authHeader, strlen('Basic '));
+        $auth = base64_decode($auth);
+        if (!$auth || !ctype_print($auth)) {
+            return null;
+        }
+
+        $creds = array_filter(explode(':', $auth));
+        if (count($creds) != 2) {
+            return null;
+        }
+
+        return $creds;
+    }
+
+    /**
+     * Store the authenticated identity for Zend_Auth to use.
+     * @param mixed $identity 
+     */
+    protected function _storeIdentity($identity)
+    {
+        Zend_Auth::getInstance()->getStorage()->write($identity);
+    }
+}
