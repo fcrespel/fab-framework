@@ -32,6 +32,12 @@ class Fab_View_Helper_ModelList_Context
     /** @var string */
     protected $_idParamField = null;
     
+    /** @var string */
+    protected $_pageParamName = 'page';
+    
+    /** @var string */
+    protected $_sortParamName = 'sort';
+    
     /**
      * Construct a new context with the given options.
      */
@@ -65,6 +71,10 @@ class Fab_View_Helper_ModelList_Context
             $this->setIdParamName($options['idParamName']);
         if (isset($options['idParamField']))
             $this->setIdParamField($options['idParamField']);
+        if (isset($options['pageParamName']))
+            $this->setPageParamName($options['pageParamName']);
+        if (isset($options['sortParamName']))
+            $this->setSortParamName($options['sortParamName']);
         return $this;
     }
     
@@ -89,6 +99,24 @@ class Fab_View_Helper_ModelList_Context
     }
     
     /**
+     * Get global record action parameters suitable for use with the URL view helper.
+     * @param array $params
+     * @return array
+     */
+    public function getGlobalRecordActionParams($params = array())
+    {
+        $pageParamName = $this->getPageParamName();
+        if (empty($pageParamName))
+            $pageParamName = 'page';
+        
+        $sortParamName = $this->getSortParamName();
+        if (empty($sortParamName))
+            $sortParamName = 'sort';
+        
+        return array_merge($params, array($pageParamName => null, $sortParamName => null));
+    }
+    
+    /**
      * Get record action parameters suitable for use with the URL view helper.
      * @param mixed $record
      * @param array $params
@@ -106,7 +134,15 @@ class Fab_View_Helper_ModelList_Context
         else
             $idParamValue = $record->$idParamField;
         
-        return array_merge($params, array($idParamName => $idParamValue));
+        $pageParamName = $this->getPageParamName();
+        if (empty($pageParamName))
+            $pageParamName = 'page';
+        
+        $sortParamName = $this->getSortParamName();
+        if (empty($sortParamName))
+            $sortParamName = 'sort';
+        
+        return array_merge($params, array($idParamName => $idParamValue, $pageParamName => null, $sortParamName => null));
     }
     
     /**
@@ -370,15 +406,17 @@ class Fab_View_Helper_ModelList_Context
     /**
      * Set the record identifier URL parameter name.
      * @param string $idParamName
+     * @return self
      */
     public function setIdParamName($idParamName)
     {
         $this->_idParamName = $idParamName;
+        return $this;
     }
 
     /**
      * Get the record identifier URL parameter value field.
-     * @return type
+     * @return string
      */
     public function getIdParamField()
     {
@@ -388,9 +426,51 @@ class Fab_View_Helper_ModelList_Context
     /**
      * Set the record identifier URL parameter value field.
      * @param string $idParamField
+     * @return self
      */
     public function setIdParamField($idParamField)
     {
         $this->_idParamField = $idParamField;
+        return $this;
+    }
+    
+    /**
+     * Get the page number URL parameter name.
+     * @return string
+     */
+    public function getPageParamName()
+    {
+        return $this->_pageParamName;
+    }
+    
+    /**
+     * Set the page number URL parameter name.
+     * @param string $pageParamName
+     * @return self
+     */
+    public function setPageParamName($pageParamName)
+    {
+        $this->_pageParamName = $pageParamName;
+        return $this;
+    }
+
+    /**
+     * Get the sort direction URL parameter name.
+     * @return string
+     */
+    public function getSortParamName()
+    {
+        return $this->_sortParamName;
+    }
+
+   /**
+     * Set the sort direction URL parameter name.
+     * @param string $sortParamName
+     * @return self
+     */
+    public function setSortParamName($sortParamName)
+    {
+        $this->_sortParamName = $sortParamName;
+        return $this;
     }
 }

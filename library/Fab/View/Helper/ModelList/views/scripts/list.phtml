@@ -3,7 +3,7 @@
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
             <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($urlOptions); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
+                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
             <?php endif; ?>
         <?php endforeach; ?>
         <?php if (isset($this->filterForm)) : ?>
@@ -66,7 +66,7 @@
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
             <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($urlOptions); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
+                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
             <?php endif; ?>
         <?php endforeach; ?>
     </ul>
