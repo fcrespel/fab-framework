@@ -78,6 +78,7 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
                         $optionsNew[$key] = $value;
                     }
                 }
+                asort($optionsNew, SORT_STRING | SORT_FLAG_CASE);
                 $element->setMultiOptions($optionsNew);
             }
         }
