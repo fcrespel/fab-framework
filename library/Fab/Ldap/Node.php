@@ -449,7 +449,7 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
     public function toArray($includeSystemAttributes = true)
     {
         if ($this->_isLazy) {
-            return array('dn' => $this->getDnString());
+            return array_merge(array('dn' => $this->getDnString()), $this->getRdnArray());
         } else {
             $attributes = parent::toArray($includeSystemAttributes);
             foreach ($attributes as $attrName => $attrValue) {
