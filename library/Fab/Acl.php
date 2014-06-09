@@ -2,8 +2,11 @@
 
 class Fab_Acl extends Zend_Acl
 {
+    /** @const string anonymous role name */
+    const ANONYMOUS_ROLE = 'anonymous';
+    
     /** @var Zend_Acl_Role_Interface|string|null current role */
-    protected $_currentRole = 'anonymous';
+    protected $_currentRole = self::ANONYMOUS_ROLE;
     
     /**
      * Get the current role.
@@ -14,13 +17,31 @@ class Fab_Acl extends Zend_Acl
         return $this->_currentRole;
     }
 
-    /*
+    /**
      * Set the current role.
      * @param Zend_Acl_Role_Interface|string|null $role
      */
     public function setCurrentRole($role = null)
     {
         $this->_currentRole = $role;
+    }
+    
+    /**
+     * Check if the current role is anonymous.
+     * @return boolean
+     */
+    public function isAnonymous()
+    {
+        return $this->_currentRole == self::ANONYMOUS_ROLE;
+    }
+    
+    /**
+     * Check if the current role is authenticated (not anonymous).
+     * @return boolean
+     */
+    public function isAuthenticated()
+    {
+        return !$this->isAnonymous();
     }
 
     /**
