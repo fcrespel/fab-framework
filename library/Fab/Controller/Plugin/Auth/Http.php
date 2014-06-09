@@ -69,10 +69,13 @@ class Fab_Controller_Plugin_Auth_Http extends Zend_Controller_Plugin_Abstract
 
     /**
      * Store the authenticated identity for Zend_Auth to use.
+     * This method automatically sets Zend_Auth storage to non-persistent,
+     * to avoid creating useless short-lived sessions.
      * @param mixed $identity 
      */
     protected function _storeIdentity($identity)
     {
+        Zend_Auth::getInstance()->setStorage(new Zend_Auth_Storage_NonPersistent());
         Zend_Auth::getInstance()->getStorage()->write($identity);
     }
 }
