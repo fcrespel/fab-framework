@@ -4,6 +4,12 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 {
     /** @var boolean */
     protected $_isLazy = false;
+    
+    /** @var array */
+    protected static $_ldapConfig = array();
+    
+    /** @var array */
+    protected static $_modelConfig = array();
 
     /** @var array */
     protected static $_arrayAttributes = array();
@@ -13,7 +19,7 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
 
     /** @var array */
     protected static $_fieldLabels = array(
-        'dn'            => 'Distinguished name'
+        'dn' => 'Distinguished name'
     );
 
     /** @var array */
@@ -23,13 +29,57 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
      * Get the LDAP configuration.
      * @return Zend_Config|array
      */
-    protected static abstract function _getLdapConfig();
-    
+    protected static function _getLdapConfig()
+    {
+        return static::$_ldapConfig;
+    }
+
     /**
      * Get the configuration for this model.
      * @return Zend_Config|array
      */
-    protected static abstract function _getModelConfig();
+    protected static function _getModelConfig()
+    {
+        return static::$_modelConfig;
+    }
+
+    /**
+     * Get attributes that should always be returned as an array.
+     * @return array
+     */
+    protected static function _getArrayAttributes()
+    {
+        return static::$_arrayAttributes;
+    }
+
+    /**
+     * Get a map between attributes and models.
+     * This is used in get/setAttribute to automatically convert from DNs to
+     * models and from models to DNs.
+     * @return array
+     */
+    protected static function _getModelMap()
+    {
+        return static::$_modelMap;
+    }
+
+    /**
+     * Get field names for this model.
+     * @return array
+     */
+    public static function getFieldNames()
+    {
+        return array_keys(static::$_fieldLabels);
+    }
+
+    /**
+     * Get user-friendly labels associated with field names.
+     * @return array
+     */
+    public static function getFieldLabels()
+    {
+        return static::$_fieldLabels;
+    }
 
     /**
      * Get the subtree distinguished name.
@@ -94,44 +144,6 @@ abstract class Fab_Ldap_Node extends Zend_Ldap_Node
             $modelConfig = $modelConfig->toArray();
         
         return $modelConfig['filter'];
-    }
-
-    /**
-     * Get attributes that should always be returned as an array.
-     * @return array
-     */
-    protected static function _getArrayAttributes()
-    {
-        return static::$_arrayAttributes;
-    }
-
-    /**
-     * Get a map between attributes and models.
-     * This is used in get/setAttribute to automatically convert from DNs to
-     * models and from models to DNs.
-     * @return array
-     */
-    protected static function _getModelMap()
-    {
-        return static::$_modelMap;
-    }
-
-    /**
-     * Get field names for this model.
-     * @return array
-     */
-    public static function getFieldNames()
-    {
-        return array_keys(static::$_fieldLabels);
-    }
-
-    /**
-     * Get user-friendly labels associated with field names.
-     * @return array
-     */
-    public static function getFieldLabels()
-    {
-        return static::$_fieldLabels;
     }
     
     /**
