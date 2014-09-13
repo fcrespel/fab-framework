@@ -56,6 +56,15 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
     protected function _generateForm()
     {
         parent::_generateForm();
+        $this->_postGenerateInternal();
+        $this->getElement('Save')->setLabel($this->_submitLabel)->setOrder(999);
+    }
+    
+    /**
+     * Post-generation internal adjustments.
+     */
+    protected function _postGenerateInternal()
+    {
         foreach ($this->getElements() as $element) {
             if ($element instanceof Zend_Form_Element_Textarea) {
                 // Add default rows and cols on textarea
@@ -82,7 +91,6 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
                 $element->setMultiOptions($optionsNew);
             }
         }
-        $this->getElement('Save')->setLabel($this->_submitLabel);
     }
     
     /**
