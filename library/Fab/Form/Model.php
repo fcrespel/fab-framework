@@ -113,13 +113,39 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
                 $element->setValue(null);
             }
         }
-        
+
         // Save the record
-        parent::save($persist);
-        
+        $record = $this->getRecord();
+        $this->_adapter->setRecordValues($this->getValues(true));
+        if ($persist) {
+            $this->_adapter->saveRecord();
+        }
+
+        // Save sub-forms
+        $this->_saveSubForms($this, $persist);
+
         // Restore ignored elements
         foreach ($ignored as $element) {
             $element->setIgnore(false);
+        }
+
+        $this->_postSave($persist);
+        return $record;
+    }
+    
+    /**
+     * Save sub-forms of a given form.
+     * @param Zend_Form $form
+     * @param bool $persist
+     */
+    protected function _saveSubForms($form, $persist = true)
+    {
+        foreach ($form->getSubForms() as $subForm) {
+            if (method_exists($subForm, 'save')) {
+                $subForm->save($persist);
+            } else {
+                $this->_saveSubForms($subForm, $persist);
+            }
         }
     }
 }
