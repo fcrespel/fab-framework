@@ -6,34 +6,16 @@ class Fab_View_Helper_TinyMce extends Zend_View_Helper_Abstract
     protected $_enabled = false;
     
     /** @var string */
-    protected $_defaultScript = 'http://www.tinymce.com/js/tinymce/jscripts/tiny_mce/tiny_mce.js';
+    protected $_defaultScript = '//tinymce.cachefly.net/4.1/tinymce.min.js';
 
     /** @var array */
-    protected $_supported = array(
-        'mode'      => array('textareas', 'specific_textareas', 'exact', 'none'),
-        'theme'     => array('simple', 'advanced'),
-        'format'    => array('html', 'xhtml'),
-        'languages' => array('en'),
-        'plugins'   => array('style', 'layer', 'table', 'save',
-                             'advhr', 'advimage', 'advlink', 'emotions',
-                             'iespell', 'insertdatetime', 'preview', 'media',
-                             'searchreplace', 'print', 'contextmenu', 'paste',
-                             'directionality', 'fullscreen', 'noneditable', 'visualchars',
-                             'nonbreaking', 'xhtmlxtras', 'imagemanager', 'filemanager','template'));
-
-    /** @var array */
-    protected $_config = array('mode'  =>'textareas',
-                               'theme' => 'simple',
-                               'element_format' => 'html');
+    protected $_config = array('selector' => 'textarea[data-tinymce]');
     
     /** @var string */
     protected $_scriptPath;
     
     /** @var string */
     protected $_scriptFile;
-    
-    /** @var bool */
-    protected $_useCompressor = false;
 
     /**
      * Magic setter.
@@ -114,24 +96,12 @@ class Fab_View_Helper_TinyMce extends Zend_View_Helper_Abstract
     }
 
     /**
-     * Set whether the compressor should be used.
-     * @param bool $switch
-     * @return self
-     */
-    public function setCompressor($switch)
-    {
-        $this->_useCompressor = (bool) $switch;
-        return $this;
-    }
-
-    /**
      * Render this TinyMCE view helper (only once).
      */
     public function render()
     {
         if (false === $this->_enabled) {
             $this->_renderScript();
-            $this->_renderCompressor();
             $this->_renderEditor();
         }
         $this->_enabled = true;
@@ -154,40 +124,12 @@ class Fab_View_Helper_TinyMce extends Zend_View_Helper_Abstract
     }
 
     /**
-     * Render the compressor script.
-     * @return self
-     */
-    protected function _renderCompressor()
-    {
-        if (false === $this->_useCompressor) {
-            return;
-        }
-
-        if (isset($this->_config['plugins']) && is_array($this->_config['plugins'])) {
-            $plugins = $this->_config['plugins'];
-        } else {
-            $plugins = $this->_supported['plugins'];
-        }
-        
-        $script = 'tinyMCE_GZ.init({' . PHP_EOL
-                . 'themes: "' . implode(',', $this->_supported['theme']) . '",' . PHP_EOL
-                . 'plugins: "'. implode(',', $plugins) . '",' . PHP_EOL
-                . 'languages: "' . implode(',', $this->_supported['languages']) . '",' . PHP_EOL
-                . 'disk_cache: true,' . PHP_EOL
-                . 'debug: false' . PHP_EOL
-                . '});';
-
-        $this->view->headScript()->appendScript($script);
-        return $this;
-    }
-
-    /**
      * Render the editor script.
      * @return self
      */
     protected function _renderEditor()
     {
-        $script = 'tinyMCE.init({' . PHP_EOL;
+        $script = 'tinymce.init({' . PHP_EOL;
 
         $params = array();
         foreach ($this->_config as $name => $value) {
@@ -196,6 +138,10 @@ class Fab_View_Helper_TinyMce extends Zend_View_Helper_Abstract
             }
             if (is_bool($value)) {
                 $value = $value ? 'true' : 'false';
+            } else if ($value == 'true') {
+                $value = 'true';
+            } else if ($value == 'false') {
+                $value = 'false';
             } else {
                 $value = '"' . $value . '"';
             }

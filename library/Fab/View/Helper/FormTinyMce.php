@@ -20,6 +20,9 @@ class Fab_View_Helper_FormTinyMce extends Zend_View_Helper_FormTextarea
         if (empty($attribs['cols'])) {
             $attribs['cols'] = (int) $this->cols;
         }
+        if (!isset($attribs['data-tinymce'])) {
+            $attribs['data-tinymce'] = null;
+        }
 
         if (isset($attribs['editorOptions'])) {
             if ($attribs['editorOptions'] instanceof Zend_Config) {
