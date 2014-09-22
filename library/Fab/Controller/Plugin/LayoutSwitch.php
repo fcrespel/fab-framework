@@ -13,6 +13,9 @@ class Fab_Controller_Plugin_LayoutSwitch extends Zend_Controller_Plugin_Abstract
     
     /** @var string */
     protected $_layoutScriptCookie = 'layout';
+    
+    /** @var string */
+    protected $_layoutSaveParam = 'savelayout';
 
     /**
      * Called before an action is dispatched by Zend_Controller_Dispatcher.
@@ -29,6 +32,8 @@ class Fab_Controller_Plugin_LayoutSwitch extends Zend_Controller_Plugin_Abstract
         $layoutScript = $this->_getLayoutScript($request);
         if ($layoutScript != null)
             Zend_Layout::getMvcInstance()->setLayout($layoutScript);
+        
+        $this->_saveLayout($request);
     }
     
     /**
@@ -176,5 +181,30 @@ class Fab_Controller_Plugin_LayoutSwitch extends Zend_Controller_Plugin_Abstract
     {
         $layoutScriptPath = Zend_Layout::getMvcInstance()->getLayoutPath() . '/' . $layoutScript . '.' . Zend_Layout::getMvcInstance()->getViewSuffix();
         return $layoutScript != null && file_exists($layoutScriptPath);
+    }
+    
+    /**
+     * Save the layout selection if requested.
+     * @param Zend_Controller_Request_Abstract $request
+     */
+    protected function _saveLayout($request)
+    {
+        if ($request->getParam($this->_layoutSaveParam) == 'true') {
+            if ($request->getParam($this->_layoutPathParam) != null)
+                $this->_setCookie($request, $this->_layoutPathCookie, $request->getParam($this->_layoutPathParam));
+            if ($request->getParam($this->_layoutScriptParam) != null)
+                $this->_setCookie($request, $this->_layoutScriptCookie, $request->getParam($this->_layoutScriptParam));
+        }
+    }
+    
+    /**
+     * Set a 30-days cookie for the current response.
+     * @param Zend_Controller_Request_Abstract $request
+     * @param string $cookieName
+     * @param string $cookieValue
+     */
+    protected function _setCookie($request, $cookieName, $cookieValue)
+    {
+        setcookie($cookieName, $cookieValue, time() + 3600 * 24 * 30, $request->getBaseUrl() . '/');
     }
 }
