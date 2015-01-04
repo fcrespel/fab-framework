@@ -147,7 +147,9 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         
         if ($contentEncoding == 'gzip' || $contentType == 'application/x-gzip') {
             // GZIP-compressed request
-            $requestBody = file_get_contents('compress.zlib://php://input');
+            //$requestBody = file_get_contents('compress.zlib://php://input'); // Broken in PHP 5.6.1
+            $compressedBody = file_get_contents('php://input');
+            $requestBody = gzdecode($compressedBody);
         } else if ($contentEncoding == 'deflate') {
             // DEFLATE-compressed request
             $fh = fopen('php://input', 'rb');
