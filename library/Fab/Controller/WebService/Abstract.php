@@ -10,16 +10,22 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
 
 
     /**
+     * Get the WSDL document URI.
+     * @return Zend_Uri
+     */
+    protected abstract function _getWsdlUri();
+
+    /**
      * Get the SOAP service URI.
      * @return Zend_Uri
      */
     protected abstract function _getSoapUri();
 
     /**
-     * Get the WSDL document URI.
+     * Get the JSON-RPC service URI.
      * @return Zend_Uri
      */
-    protected abstract function _getWsdlUri();
+    protected abstract function _getJsonRpcUri();
 
     /**
      * Get the service class name.
@@ -133,7 +139,21 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         $server->returnResponse(true);
         return $server;
     }
-    
+
+    /**
+     * Get the JSON server configured to use the service class.
+     * @return Zend_Json_Server
+     */
+    protected function _getJsonServer()
+    {
+        $server = new Zend_Json_Server();
+        $server->setClass($this->_getServiceClass());
+        $server->setEnvelope(Zend_Json_Server_Smd::ENV_JSONRPC_2);
+        $server->setTarget($this->_getJsonRpcUri());
+        $server->setAutoEmitResponse(false);
+        return $server;
+    }
+
     /**
      * Get the request body, taking the Content-Type and Content-Encoding headers into account.
      * This will effectively uncompress a gzip- or deflate-encoded request.
@@ -168,18 +188,14 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
      * Set the response body, taking the Content-Type and Accept-Encoding headers into account.
      * This will effectively compress the response using gzip or deflate, if requested.
      * @param string $responseBody response body
-     * @param string $contentType response default content type, without compression
      */
-    protected function _setResponseBody($responseBody, $contentType = 'application/xml; charset=UTF-8')
+    protected function _setResponseBody($responseBody)
     {
         $request = $this->getRequest();
         $response = $this->getResponse();
         $contentType = $request->getServer('CONTENT_TYPE');
         $acceptEncoding = $request->getHeader('Accept-Encoding');
         $acceptEncodings = $acceptEncoding ? preg_split('/[\s,]+/', $acceptEncoding) : array();
-        
-        // Set the default Content-Type
-        $response->setHeader('Content-Type', $contentType, true);
         
         if (in_array('gzip', $acceptEncodings) || $contentType == 'application/x-gzip') {
             // GZIP-compressed response

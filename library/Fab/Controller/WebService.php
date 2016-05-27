@@ -4,24 +4,22 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
 {
 
     /** @var Zend_Uri */
+    protected $_wsdlUri;
+
+    /** @var Zend_Uri */
     protected $_soapUri;
 
     /** @var Zend_Uri */
-    protected $_wsdlUri;
-
-    /**
-     * Get the SOAP service URI.
-     * @return Zend_Uri
-     */
-    protected function _getSoapUri()
-    {
-        if (null === $this->_soapUri) {
-            $uri = $this->_getAutoDiscover()->getUri();
-            $uri->setPath($this->view->url(array('action' => 'soap')));
-            $this->_soapUri = $uri;
-        }
-        return $this->_soapUri;
-    }
+    protected $_jsonRpcUri;
+    
+    /** @var array */
+    protected $_actionContextTypes = array(
+        'wsdl'    => 'xml',
+        'soap'    => 'xml',
+        'rest'    => 'xml',
+        'smd'     => 'json',
+        'jsonrpc' => 'json',
+    );
 
     /**
      * Get the WSDL document URI.
@@ -38,15 +36,47 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     }
 
     /**
+     * Get the SOAP service URI.
+     * @return Zend_Uri
+     */
+    protected function _getSoapUri()
+    {
+        if (null === $this->_soapUri) {
+            $uri = $this->_getAutoDiscover()->getUri();
+            $uri->setPath($this->view->url(array('action' => 'soap')));
+            $this->_soapUri = $uri;
+        }
+        return $this->_soapUri;
+    }
+
+    /**
+     * Get the JSON-RPC service URI.
+     * @return Zend_Uri
+     */
+    protected function _getJsonRpcUri()
+    {
+        if (null === $this->_jsonRpcUri) {
+            $uri = $this->_getAutoDiscover()->getUri();
+            $uri->setPath($this->view->url(array('action' => 'jsonrpc')));
+            $this->_jsonRpcUri = $uri;
+        }
+        return $this->_jsonRpcUri;
+    }
+
+    /**
      * Controller initialization.
      */
     public function init() {
-        // Switch relevant actions to XML
+        $actionName = $this->getRequest()->getActionName();
+        
+        // Switch relevant actions to XML or JSON
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
-        $contextSwitch->setActionContext('wsdl', 'xml')
-                      ->setActionContext('soap', 'xml')
-                      ->setActionContext('rest', 'xml')
-                      ->initContext('xml');
+        if (isset($this->_actionContextTypes[$actionName])) {
+            $actionContextType = $this->_actionContextTypes[$actionName];
+            $contextSwitch->setActionContext($actionName, $actionContextType)
+                          ->setAutoJsonSerialization(false)
+                          ->initContext($actionContextType);
+        }
     }
 
     /**
@@ -68,6 +98,8 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
         $request = $this->getRequest();
         if ($request->getParam('wsdl') !== null) {
             $this->_forward('wsdl');
+        } else if ($request->getParam('smd') !== null) {
+            $this->_forward('smd');
         } else if ($request->isPost()) {
             $this->_forward('soap');
         } else {
@@ -107,7 +139,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     }
 
     /**
-     * SOAP Web Service requests handling.
+     * SOAP service requests handling.
      */
     public function soapAction()
     {
@@ -119,12 +151,36 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     }
 
     /**
-     * REST Web Service requests handling.
+     * REST-XML service requests handling.
      */
     public function restAction()
     {
         // Let Zend_Rest_Server handle the request
         $this->_setResponseBody($this->_getRestServer()->handle());
+        
+        // Bypass view renderer for performance optimization
+        $this->_helper->viewRenderer->setNoRender();
+    }
+
+    /**
+     * Output the SMD document.
+     */
+    public function smdAction()
+    {
+        // Let Zend_Json_Server_Smd handle the request
+        $this->_setResponseBody($this->_getJsonServer()->getServiceMap()->toJson());
+        
+        // Bypass view renderer for performance optimization
+        $this->_helper->viewRenderer->setNoRender();
+    }
+
+    /**
+     * JSON-RPC service requests handling.
+     */
+    public function jsonrpcAction()
+    {
+        // Let Zend_Json_Server handle the request
+        $this->_setResponseBody($this->_getJsonServer()->handle());
         
         // Bypass view renderer for performance optimization
         $this->_helper->viewRenderer->setNoRender();
