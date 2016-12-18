@@ -16,5 +16,8 @@
         "psr-0": {
             "Fab_": "library/"
         }
-    }
+    },
+    "include-path": [
+        "library/"
+    ]
 }
