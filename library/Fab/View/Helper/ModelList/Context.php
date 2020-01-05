@@ -113,6 +113,9 @@ class Fab_View_Helper_ModelList_Context
         if (empty($sortParamName))
             $sortParamName = 'sort';
         
+        if (isset($params['attrs']))
+            unset($params['attrs']);
+        
         return array_merge($params, array($pageParamName => null, $sortParamName => null));
     }
     
@@ -142,6 +145,9 @@ class Fab_View_Helper_ModelList_Context
         if (empty($sortParamName))
             $sortParamName = 'sort';
         
+        if (isset($params['attrs']))
+            unset($params['attrs']);
+
         return array_merge($params, array($idParamName => $idParamValue, $pageParamName => null, $sortParamName => null));
     }
     

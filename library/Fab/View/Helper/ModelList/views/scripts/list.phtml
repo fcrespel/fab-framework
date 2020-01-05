@@ -3,7 +3,7 @@
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
             <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
+                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
             <?php endif; ?>
         <?php endforeach; ?>
         <?php if (isset($this->filterForm)) : ?>
@@ -51,7 +51,7 @@
                 <td class="record-single-actions">
                     <?php foreach ($this->options['singleRecordActions'] as $name => $urlOptions): ?>
                         <?php if ($this->context->isAllowed($record, $urlOptions['action'])) : ?>
-                            <a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getRecordActionParams($record, $urlOptions)); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a>
+                            <a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getRecordActionParams($record, $urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a>
                         <?php endif; ?>
                     <?php endforeach; ?>
                 </td>
@@ -66,7 +66,7 @@
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
             <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"><?php echo $name; ?></a></li>
+                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
             <?php endif; ?>
         <?php endforeach; ?>
     </ul>
