@@ -4,7 +4,10 @@ class Fab_View_Helper_ModelList_Context
 {
     /** @var Zend_View_Interface */
     protected $_view;
-    
+
+    /** @var string */
+    protected $_modelName;
+
     /** @var bool */
     protected $_useAcl = true;
 
@@ -53,6 +56,8 @@ class Fab_View_Helper_ModelList_Context
      */
     public function setOptions($options = array())
     {
+        if (isset($options['modelName']))
+            $this->setModelName($options['modelName']);
         if (isset($options['useAcl']))
             $this->setUseAcl($options['useAcl']);
         if (isset($options['acl']))
@@ -152,6 +157,17 @@ class Fab_View_Helper_ModelList_Context
     }
     
     /**
+     * Get record element id suitable for use in HTML markup.
+     * @param mixed $record
+     * @return string
+     */
+    public function getRecordElementId($record)
+    {
+        $id = $this->getModelName() . '-' . implode('-', $record->identifier());
+        return strtolower(str_replace(array('_', '\\'), '-', $id));
+    }
+
+    /**
      * Get the view this context is related to.
      * @return Zend_View_Interface
      */
@@ -168,6 +184,26 @@ class Fab_View_Helper_ModelList_Context
     public function setView(Zend_View_Interface $view)
     {
         $this->_view = $view;
+        return $this;
+    }
+
+    /**
+     * Get the model name.
+     * @return string
+     */
+    public function getModelName()
+    {
+        return $this->_modelName;
+    }
+    
+    /**
+     * Set the model name.
+     * @param string $modelName
+     * @return self
+     */
+    public function setModelName($modelName)
+    {
+        $this->_modelName = $modelName;
         return $this;
     }
 

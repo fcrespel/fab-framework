@@ -2,12 +2,12 @@
     <?php if (count($this->options['globalRecordActions']) > 0 || isset($this->filterForm)) : ?>
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
-            <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
-            <?php endif; ?>
+        <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
+        <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
+        <?php endif; ?>
         <?php endforeach; ?>
         <?php if (isset($this->filterForm)) : ?>
-            <li><a class="record-action record-action-filter" href="#" title="Filter" data-ajax="false">Filter</a></li>
+        <li><a class="record-action record-action-filter" href="#" title="Filter" data-ajax="false">Filter</a></li>
         <?php endif; ?>
     </ul>
     <?php endif; ?>
@@ -24,9 +24,9 @@
         <thead>
             <tr>
                 <?php foreach ($this->fieldNames as $name): ?>
-                    <th class="record-header sort-<?php echo $this->sortDirection ?><?php if (!strcasecmp($name, $this->sortField)) echo ' sorted' ?>"><a href="<?php echo $this->url(array($this->options['sortParamName'] => !strcasecmp($name, $this->sortField) && $this->sortDirection == 'asc' ? $name . '.d' : $name)) ?>">
-                        <?php echo $this->escape($this->options['fieldLabels'][$name]); ?>
-                    </a></th>
+                <th class="record-header sort-<?php echo $this->sortDirection ?><?php if (!strcasecmp($name, $this->sortField)) echo ' sorted' ?>">
+                    <a href="<?php echo $this->url(array($this->options['sortParamName'] => !strcasecmp($name, $this->sortField) && $this->sortDirection == 'asc' ? $name . '.d' : $name)) ?>"><?php echo $this->escape($this->options['fieldLabels'][$name]); ?></a>
+                </th>
                 <?php endforeach; ?>
                 <?php if (count($this->options['singleRecordActions']) > 0): ?>
                 <th>Actions</th>
@@ -45,15 +45,20 @@
             <?php foreach ($this->paginator as $record): ?>
             <tr class="<?php echo ($rowStyle ^= 1) ? 'odd' : 'even' ?>">
                 <?php foreach ($this->fieldNames as $name): ?>
-                    <td class="record-field record-field-<?php echo $name; ?>"><?php echo $this->context->getDecorator($name, $record->$name)->render($name, $record->$name); ?></td>
+                <td class="record-field record-field-<?php echo $name; ?>"><?php echo $this->context->getDecorator($name, $record->$name)->render($name, $record->$name); ?></td>
                 <?php endforeach; ?>
                 <?php if (count($this->options['singleRecordActions']) > 0): ?>
-                <td class="record-single-actions">
-                    <?php foreach ($this->options['singleRecordActions'] as $name => $urlOptions): ?>
-                        <?php if ($this->context->isAllowed($record, $urlOptions['action'])) : ?>
-                            <a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getRecordActionParams($record, $urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                <td class="record-field record-field-actions">
+                    <a href="#record-single-actions-<?php echo htmlentities($this->context->getRecordElementId($record)); ?>" data-rel="popup" class="record-single-actions-button ui-btn ui-btn-inline ui-btn-icon-notext ui-icon-bars ui-corner-all" style="display: none;">Actions...</a>
+                    <div id="record-single-actions-<?php echo htmlentities($this->context->getRecordElementId($record)); ?>" data-role="popup">
+                        <ul class="record-single-actions" data-role="listview" data-inset="true">
+                            <?php foreach ($this->options['singleRecordActions'] as $name => $urlOptions): ?>
+                            <?php if ($this->context->isAllowed($record, $urlOptions['action'])) : ?>
+                            <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getRecordActionParams($record, $urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                 </td>
                 <?php endif; ?>
             </tr>
@@ -65,9 +70,9 @@
     <?php if (count($this->options['globalRecordActions']) > 0) : ?>
     <ul class="record-global-actions">
         <?php foreach ($this->options['globalRecordActions'] as $name => $urlOptions) : ?>
-            <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
-                <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
-            <?php endif; ?>
+        <?php if ($this->context->isAllowed(null, $urlOptions['action'])): ?>
+        <li><a class="record-action record-action-<?php echo $urlOptions['action']; ?>" href="<?php echo $this->url($this->context->getGlobalRecordActionParams($urlOptions)); ?>" title="<?php echo $name; ?>"<?php if (isset($urlOptions['attrs'])) foreach($urlOptions['attrs'] as $attrName => $attrValue) echo "$attrName=\"".htmlentities($attrValue)."\"" ?>><?php echo $name; ?></a></li>
+        <?php endif; ?>
         <?php endforeach; ?>
     </ul>
     <?php endif; ?>

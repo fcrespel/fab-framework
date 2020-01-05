@@ -68,13 +68,15 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
     
     /**
      * Initialize a new context with defaults and given options.
+     * @paramm string $modelName
      * @param array $options
      * @return Fab_View_Helper_ModelList_Context 
      */
-    protected function _initContext($options = array())
+    protected function _initContext($modelName, $options = array())
     {
         $context = new Fab_View_Helper_ModelList_Context();
         $context->setView($this->view)
+                ->setModelName($modelName)
                 ->setAcl(self::getDefaultAcl())
                 ->setRole(self::getDefaultRole())
                 ->setAdapters(self::getDefaultAdapters())
@@ -96,7 +98,7 @@ class Fab_View_Helper_ModelList extends Zend_View_Helper_Abstract
         $request = Zend_Controller_Front::getInstance()->getRequest();
         
         // Process options
-        $context = $this->_initContext($options);
+        $context = $this->_initContext($modelName, $options);
         $options = array_merge(self::$_defaultOptions, $options);
         
         // Process page param (default to 1)
