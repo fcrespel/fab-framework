@@ -163,7 +163,16 @@ class Fab_View_Helper_ModelList_Context
      */
     public function getRecordElementId($record)
     {
-        $id = $this->getModelName() . '-' . implode('-', $record->identifier());
+        $idParamField = $this->getIdParamField();
+        if (empty($idParamField))
+            $idParamValue = $record->identifier();
+        else
+            $idParamValue = $record->$idParamField;
+
+        if (!is_array($idParamValue))
+            $idParamValue = array($idParamValue);
+
+        $id = $this->getModelName() . '-' . implode('-', $idParamValue);
         return strtolower(str_replace(array('_', '\\'), '-', $id));
     }
 
