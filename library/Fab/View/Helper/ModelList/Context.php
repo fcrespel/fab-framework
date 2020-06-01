@@ -140,7 +140,7 @@ class Fab_View_Helper_ModelList_Context
         if (empty($idParamField))
             $idParamValue = $record->identifier();
         else
-            $idParamValue = $record->$idParamField;
+            $idParamValue = $this->getRecordFieldValue($record, $idParamField);
         
         $pageParamName = $this->getPageParamName();
         if (empty($pageParamName))
@@ -167,13 +167,42 @@ class Fab_View_Helper_ModelList_Context
         if (empty($idParamField))
             $idParamValue = $record->identifier();
         else
-            $idParamValue = $record->$idParamField;
+            $idParamValue = $this->getRecordFieldValue($record, $idParamField);
 
         if (!is_array($idParamValue))
             $idParamValue = array($idParamValue);
 
         $id = $this->getModelName() . '-' . implode('-', $idParamValue);
-        return strtolower(str_replace(array('_', '\\'), '-', $id));
+        return strtolower(str_replace(array('_', '\\', '.'), '-', $id));
+    }
+
+    /**
+     * Get a record field value.
+     * @param mixed $record
+     * @param string $field
+     * @return mixed value
+     */
+    public function getRecordFieldValue($record, $field)
+    {
+        $value = $record;
+        $fields = explode('.', $field);
+        foreach ($fields as $f) {
+            $value = $value->$f;
+            if ($value === null)
+                break;
+        }
+        return $value;
+    }
+
+    /**
+     * Get a record field id suitable for use in HTML markup.
+     * @param string $field
+     * @return mixed id
+     */
+    public function getRecordFieldId($field)
+    {
+        $fields = explode('.', $field);
+        return strtolower(str_replace(array('_', '\\', '.'), '-', $fields[count($fields)-1]));
     }
 
     /**

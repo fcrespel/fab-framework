@@ -45,7 +45,7 @@
             <?php foreach ($this->paginator as $record): ?>
             <tr class="<?php echo ($rowStyle ^= 1) ? 'odd' : 'even' ?>">
                 <?php foreach ($this->fieldNames as $name): ?>
-                <td class="record-field record-field-<?php echo $name; ?>"><?php echo $this->context->getDecorator($name, $record->$name)->render($name, $record->$name); ?></td>
+                <td class="record-field record-field-<?php echo $this->context->getRecordFieldId($name); ?>"><?php echo $this->context->getDecorator($name, $this->context->getRecordFieldValue($record, $name))->render($name, $this->context->getRecordFieldValue($record, $name)); ?></td>
                 <?php endforeach; ?>
                 <?php if (count($this->options['singleRecordActions']) > 0): ?>
                 <td class="record-field record-field-actions">
