@@ -48,7 +48,12 @@ abstract class Fab_Cron_Abstract implements Fab_Cron_Interface
      */
     public function isLocked()
     {
-        return file_exists($this->_getLockFile());
+        $locked = file_exists($this->_getLockFile());
+        if ($locked && function_exists('posix_getpgid')) {
+            $pid = file_get_contents($this->_getLockFile());
+            $locked = posix_getpgid(intval($pid)) !== false;
+        }
+        return $locked;
     }
 
     /**
