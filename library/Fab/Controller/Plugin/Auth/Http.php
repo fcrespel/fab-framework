@@ -27,7 +27,7 @@ class Fab_Controller_Plugin_Auth_Http extends Zend_Controller_Plugin_Abstract
     }
 
     /**
-     * 
+     * Get the authentication adapter.
      * @return Zend_Auth_Adapter_Interface
      */
     protected function _getAuthAdapter()
@@ -49,22 +49,34 @@ class Fab_Controller_Plugin_Auth_Http extends Zend_Controller_Plugin_Abstract
 
         list($clientScheme) = explode(' ', $authHeader);
         $clientScheme = strtolower($clientScheme);
-        if ($clientScheme != 'basic') {
+        if ($clientScheme == 'basic') {
+            // Basic auth
+            $auth = substr($authHeader, strlen('Basic '));
+            $auth = base64_decode($auth);
+            if (!$auth || !ctype_print($auth)) {
+                return null;
+            }
+
+            $creds = array_filter(explode(':', $auth));
+            if (count($creds) != 2) {
+                return null;
+            }
+            return $creds;
+
+        } else if ($clientScheme == 'bearer') {
+            // OAuth token
+            $auth = substr($authHeader, strlen('Bearer '));
+            if (!$auth || !ctype_print($auth)) {
+                return null;
+            }
+
+            $creds = array('token', $auth);
+            return $creds;
+
+        } else {
+            // Unknown
             return null;
         }
-
-        $auth = substr($authHeader, strlen('Basic '));
-        $auth = base64_decode($auth);
-        if (!$auth || !ctype_print($auth)) {
-            return null;
-        }
-
-        $creds = array_filter(explode(':', $auth));
-        if (count($creds) != 2) {
-            return null;
-        }
-
-        return $creds;
     }
 
     /**
