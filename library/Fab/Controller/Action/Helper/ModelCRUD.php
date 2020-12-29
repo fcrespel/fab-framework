@@ -31,7 +31,7 @@ class Fab_Controller_Action_Helper_ModelCRUD extends ZFDoctrine_Controller_Helpe
     {
         $request = $this->getActionController()->getRequest();
         if ($this->getRecordIdParam()) {
-            return $request->getParam($this->getRecordIdParam());
+            return $request->getUserParam($this->getRecordIdParam());
         }
         return null;
     }

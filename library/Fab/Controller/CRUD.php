@@ -257,7 +257,7 @@ abstract class Fab_Controller_CRUD extends Fab_Controller_Action
         $form = $this->_getModelInputForm();
         
         // Ensure no new record can be added through this action
-        if ($this->getRequest()->getParam($modelCRUD->getRecordIdParam()) == null)
+        if ($this->getRequest()->getUserParam($modelCRUD->getRecordIdParam()) == null)
             throw new Exception("Missing record id in request params.");
         
         // Handle the form submission
