@@ -32,7 +32,13 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
      * @var string
      */
     protected $_submitLabel = 'Save';
-    
+
+    /**
+     * Enable CSRF token validation.
+     * @var bool
+     */
+    protected $_csrfEnabled = true;
+
     /**
      * @param array $options Options to pass to the Zend_Form constructor
      */
@@ -46,7 +52,11 @@ class Fab_Form_Model extends ZFDoctrine_Form_Model
         
         $this->addPrefixPath('Fab_Form_Element_', 'Fab/Form/Element/', self::ELEMENT);
         $this->addElementPrefixPath('Fab_Validate', 'Fab/Validate/', Zend_Form_Element::VALIDATE);
-        
+
+        if ($this->_csrfEnabled) {
+            $this->addElement('csrfToken', '_csrf', array('decorators' => array('ViewHelper', 'Errors')));
+        }
+
         parent::__construct($options);
     }
     
