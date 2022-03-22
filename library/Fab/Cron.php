@@ -132,12 +132,15 @@ class Fab_Cron
     public function getLog()
     {
         if (null === $this->_log) {
-            $writer = new Zend_Log_Writer_Stream($this->getLogFile());
             $formatter = new Zend_Log_Formatter_Simple('%timestamp% %priorityName% (%priority%): %message%' . PHP_EOL);
-            $writer->setFormatter($formatter);
+            $stdoutWriter = new Zend_Log_Writer_Stream('php://stdout');
+            $stdoutWriter->setFormatter($formatter);
+            $fileWriter = new Zend_Log_Writer_Stream($this->getLogFile());
+            $fileWriter->setFormatter($formatter);
 
             $log = new Zend_Log();
-            $log->addWriter($writer);
+            $log->addWriter($stdoutWriter);
+            $log->addWriter($fileWriter);
             $this->setLog($log);
         }
         return $this->_log;
