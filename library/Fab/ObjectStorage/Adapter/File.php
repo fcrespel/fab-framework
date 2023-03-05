@@ -36,7 +36,7 @@ class Fab_ObjectStorage_Adapter_File implements Fab_ObjectStorage_Adapter_Interf
     public function getContent($path)
     {
         if (file_exists($path)) {
-            return GuzzleHttp\Psr7\stream_for(fopen($path, 'rb'));
+            return GuzzleHttp\Psr7\Utils::streamFor(fopen($path, 'rb'));
         } else {
             return false;
         }
@@ -48,7 +48,7 @@ class Fab_ObjectStorage_Adapter_File implements Fab_ObjectStorage_Adapter_Interf
             $content = StreamWrapper::getResource($content);
         }
         if (file_put_contents($path, $content) !== false) {
-            return $this->_mapObject(new SplFileInfo($path));
+            return true;
         } else {
             return false;
         }

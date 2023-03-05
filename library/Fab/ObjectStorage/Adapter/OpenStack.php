@@ -3,6 +3,7 @@
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use OpenStack\OpenStack;
+use OpenStack\ObjectStore\v1\Models\StorageObject;
 use OpenStack\Common\Error\BadResponseError;
 use OpenStack\Common\Transport\Utils;
 use OpenStack\Identity\v2\Service;
@@ -138,10 +139,10 @@ class Fab_ObjectStorage_Adapter_OpenStack implements Fab_ObjectStorage_Adapter_I
             $pathComponents = $this->_getPathComponents($path);
             $options = array(
                 'name' => $pathComponents[1],
-                'stream' => GuzzleHttp\Psr7\stream_for($content),
+                'stream' => GuzzleHttp\Psr7\Utils::streamFor($content),
             );
-            $object = $this->_getOpenStack()->objectStoreV1()->getContainer($pathComponents[0])->createObject($options);
-            return $this->_mapObject($object);
+            $this->_getOpenStack()->objectStoreV1()->getContainer($pathComponents[0])->createObject($options);
+            return true;
         } catch (Exception $e) {
             return $this->_handleException($e);
         }
@@ -262,6 +263,7 @@ class Fab_ObjectStorage_Adapter_OpenStack implements Fab_ObjectStorage_Adapter_I
 
     /**
      * Map an OpenStack object to a Fab_ObjectStorage_Object.
+     * @param StorageObject $object
      * @return Fab_ObjectStorage_Object mapped object
      */
     protected function _mapObject($object)

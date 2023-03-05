@@ -38,7 +38,7 @@ interface Fab_ObjectStorage_Adapter_Interface
      * This will create or update the object if it exists.
      * @param string $path object path
      * @param StreamInterface|resource|string $content data stream
-     * @return Fab_ObjectStorage_Object|bool object or false if an error occurred
+     * @return bool true if the object was uploaded, false otherwise
      */
     public function put($path, $content);
 
