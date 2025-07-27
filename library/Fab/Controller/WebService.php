@@ -196,6 +196,16 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     }
 
     /**
+     * Swagger UI page.
+     */
+    public function swaggeruiAction()
+    {
+        $this->view->headLink()->appendStylesheet("https://unpkg.com/swagger-ui-dist@5.27.0/swagger-ui.css");
+        $this->view->headScript()->appendFile("https://unpkg.com/swagger-ui-dist@5.27.0/swagger-ui-bundle.js");
+        $this->view->headTitle(ucfirst($this->getRequest()->getControllerName()) . ' Swagger UI');
+    }
+
+    /**
      * JSON service requests handling.
      */
     public function jsonAction()
