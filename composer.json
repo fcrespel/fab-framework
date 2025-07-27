@@ -11,6 +11,8 @@
     ],
     "require": {
         "zendframework/zendframework1": "1.12.*",
+        "aws/aws-sdk-php": "^3.226",
+        "php-opencloud/openstack": "3.*",
         "cebe/php-openapi": "^1.8"
     },
     "autoload": {
