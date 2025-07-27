@@ -2,8 +2,11 @@
 
 abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
 {
-    /** @var Zend_Soap_AutoDiscover */
-    protected $_autoDiscover;
+    /** @var Fab_Soap_AutoDiscover */
+    protected $_soapAutoDiscover;
+
+    /** @var Fab_OpenApi_AutoDiscover */
+    protected $_openApiAutoDiscover;
 
     /** @var array */
     protected $_classmap = array();
@@ -28,10 +31,22 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
     protected abstract function _getJsonRpcUri();
 
     /**
+     * Get the JSON service URI.
+     * @return Zend_Uri
+     */
+    protected abstract function _getJsonUri();
+
+    /**
      * Get the service class name.
      * @return string
      */
     protected abstract function _getServiceClass();
+
+    /**
+     * Get the service version.
+     * @return string
+     */
+    protected abstract function _getServiceVersion();
 
     /**
      * Get the SOAP classmap.
@@ -67,9 +82,18 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
      * Get the WSDL cache ID made from the URI.
      * @return string
      */
-    protected function _getCacheId()
+    protected function _getWsdlCacheId()
     {
         return 'wsdl_' . $this->_getServiceClass() . '_' . sha1($this->_getSoapUri()->getUri());
+    }
+
+    /**
+     * Get the OpenAPI cache ID made from the URI.
+     * @return string
+     */
+    protected function _getOpenApiCacheId()
+    {
+        return 'openapi_' . $this->_getServiceClass() . '_' . sha1($this->_getJsonUri()->getUri());
     }
 
     /**
@@ -77,22 +101,35 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
      */
     protected function _invalidateCache()
     {
-        $this->_getCache()->clean(Zend_Cache::CLEANING_MODE_MATCHING_TAG, array('wsdl'));
+        $this->_getCache()->clean(Zend_Cache::CLEANING_MODE_MATCHING_TAG, array('WS'));
     }
 
     /**
-     * Get the WSDL AutoDiscover instance.
+     * Get the SOAP AutoDiscover instance.
      * @return Fab_Soap_AutoDiscover
      */
-    protected function _getAutoDiscover()
+    protected function _getSoapAutoDiscover()
     {
-        if (null === $this->_autoDiscover) {
+        if (null === $this->_soapAutoDiscover) {
             $strategy = new Fab_Soap_Wsdl_Strategy_DoctrineRecord();
             $strategy = new Fab_Soap_Wsdl_Strategy_ArrayOfType($strategy);
-            $this->_autoDiscover = new Fab_Soap_AutoDiscover($strategy);
-            $this->_autoDiscover->setClassmap($this->_getClassmap());
+            $this->_soapAutoDiscover = new Fab_Soap_AutoDiscover($strategy);
+            $this->_soapAutoDiscover->setClassmap($this->_getClassmap());
         }
-        return $this->_autoDiscover;
+        return $this->_soapAutoDiscover;
+    }
+
+    /**
+     * Get the OpenAPI AutoDiscover instance.
+     * @return Fab_OpenApi_AutoDiscover
+     */
+    protected function _getOpenApiAutoDiscover()
+    {
+        if (null === $this->_openApiAutoDiscover) {
+            $this->_openApiAutoDiscover = new Fab_OpenApi_AutoDiscover();
+            $this->_openApiAutoDiscover->setClassmap($this->_getClassmap());
+        }
+        return $this->_openApiAutoDiscover;
     }
 
     /**
@@ -102,15 +139,36 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
     protected function _getWsdl()
     {
         $cache = $this->_getCache();
-        if (($wsdl = $cache->load($this->_getCacheId())) === false) {
-            $autoDiscover = $this->_getAutoDiscover();
+        if (($wsdl = $cache->load($this->_getWsdlCacheId())) === false) {
+            $autoDiscover = $this->_getSoapAutoDiscover();
+            $autoDiscover->setServiceName(ucfirst($this->getRequest()->getControllerName()));
             $autoDiscover->setUri($this->_getSoapUri());
             $autoDiscover->setClass($this->_getServiceClass());
 
             $wsdl = $autoDiscover->toXml();
-            $cache->save($wsdl, $this->_getCacheId(), array('wsdl'));
+            $cache->save($wsdl, $this->_getWsdlCacheId(), array('WS'));
         }
         return $wsdl;
+    }
+
+    /**
+     * Get the OpenAPI document for the current service.
+     * If possible, get it from the cache, otherwise generate it and cache it.
+     */
+    protected function _getOpenApi()
+    {
+        $cache = $this->_getCache();
+        if (($openApi = $cache->load($this->_getOpenApiCacheId())) === false) {
+            $autoDiscover = $this->_getOpenApiAutoDiscover();
+            $autoDiscover->setServiceName(ucfirst($this->getRequest()->getControllerName()));
+            $autoDiscover->setServiceVersion($this->_getServiceVersion());
+            $autoDiscover->setServiceUrl($this->_getJsonUri());
+            $autoDiscover->setServiceClass($this->_getServiceClass());
+
+            $openApi = $autoDiscover->toJson();
+            $cache->save($openApi, $this->_getOpenApiCacheId(), array('WS'));
+        }
+        return $openApi;
     }
 
     /**
@@ -123,7 +181,7 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         $server->registerFaultException('Exception');
         $server->setClass($this->_getServiceClass());
         $server->setClassmap($this->_getClassmap());
-        $server->setAutoDiscover($this->_getAutoDiscover());
+        $server->setAutoDiscover($this->_getSoapAutoDiscover());
         $server->setReturnResponse(true);
         return $server;
     }
@@ -164,7 +222,7 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
         $request = $this->getRequest();
         $contentType = $request->getServer('CONTENT_TYPE');
         $contentEncoding = $request->getHeader('Content-Encoding');
-        
+
         if ($contentEncoding == 'gzip' || $contentType == 'application/x-gzip') {
             // GZIP-compressed request
             //$requestBody = file_get_contents('compress.zlib://php://input'); // Broken in PHP 5.6.1
@@ -180,23 +238,24 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
             // Uncompressed request
             $requestBody = file_get_contents('php://input');
         }
-        
+
         return $requestBody;
     }
-    
+
     /**
      * Set the response body, taking the Content-Type and Accept-Encoding headers into account.
      * This will effectively compress the response using gzip or deflate, if requested.
      * @param string $responseBody response body
+     * @param int|null $responseCode HTTP response code (optional)
      */
-    protected function _setResponseBody($responseBody)
+    protected function _setResponseBody($responseBody, $responseCode = null)
     {
         $request = $this->getRequest();
         $response = $this->getResponse();
         $contentType = $request->getServer('CONTENT_TYPE');
         $acceptEncoding = $request->getHeader('Accept-Encoding');
         $acceptEncodings = $acceptEncoding ? preg_split('/[\s,]+/', $acceptEncoding) : array();
-        
+
         if (in_array('gzip', $acceptEncodings) || $contentType == 'application/x-gzip') {
             // GZIP-compressed response
             $responseBody = gzencode($responseBody, 9);
@@ -212,9 +271,15 @@ abstract class Fab_Controller_WebService_Abstract extends Zend_Controller_Action
             $response->setHeader('Content-Encoding', 'deflate', true);
             $response->setHeader('Vary', 'Accept-Encoding', true);
         }
-        
+
         $response->setBody($responseBody);
         $response->setHeader('Content-Length', strlen($responseBody), true);
+        if (!empty($responseCode)) {
+            $response->setHttpResponseCode($responseCode);
+        }
+
+        // Bypass view renderer
+        $this->_helper->viewRenderer->setNoRender();
     }
 
 }

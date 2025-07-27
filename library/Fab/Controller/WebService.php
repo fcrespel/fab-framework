@@ -11,7 +11,10 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
 
     /** @var Zend_Uri */
     protected $_jsonRpcUri;
-    
+
+    /** @var Zend_Uri */
+    protected $_jsonUri;
+
     /** @var array */
     protected $_actionContextTypes = array(
         'wsdl'    => 'xml',
@@ -19,6 +22,8 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
         'rest'    => 'xml',
         'smd'     => 'json',
         'jsonrpc' => 'json',
+        'openapi' => 'json',
+        'json'    => 'json',
     );
 
     /**
@@ -28,7 +33,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     protected function _getWsdlUri()
     {
         if (null === $this->_wsdlUri) {
-            $uri = $this->_getAutoDiscover()->getUri();
+            $uri = $this->_getSoapAutoDiscover()->getUri();
             $uri->setPath($this->view->url(array('action' => 'wsdl')));
             $this->_wsdlUri = $uri;
         }
@@ -42,7 +47,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     protected function _getSoapUri()
     {
         if (null === $this->_soapUri) {
-            $uri = $this->_getAutoDiscover()->getUri();
+            $uri = $this->_getSoapAutoDiscover()->getUri();
             $uri->setPath($this->view->url(array('action' => 'soap')));
             $this->_soapUri = $uri;
         }
@@ -56,7 +61,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     protected function _getJsonRpcUri()
     {
         if (null === $this->_jsonRpcUri) {
-            $uri = $this->_getAutoDiscover()->getUri();
+            $uri = $this->_getSoapAutoDiscover()->getUri();
             $uri->setPath($this->view->url(array('action' => 'jsonrpc')));
             $this->_jsonRpcUri = $uri;
         }
@@ -64,11 +69,25 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     }
 
     /**
+     * Get the JSON service URI.
+     * @return Zend_Uri
+     */
+    protected function _getJsonUri()
+    {
+        if (null === $this->_jsonUri) {
+            $uri = $this->_getSoapAutoDiscover()->getUri();
+            $uri->setPath($this->view->url(array('action' => 'json')) . '/invoke');
+            $this->_jsonUri = $uri;
+        }
+        return $this->_jsonUri;
+    }
+
+    /**
      * Controller initialization.
      */
     public function init() {
         $actionName = $this->getRequest()->getActionName();
-        
+
         // Switch relevant actions to XML or JSON
         $contextSwitch = $this->_helper->getHelper('contextSwitch');
         if (isset($this->_actionContextTypes[$actionName])) {
@@ -97,13 +116,13 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
     {
         $request = $this->getRequest();
         if ($request->getParam('wsdl') !== null) {
-            $this->_forward('wsdl');
+            $this->forward('wsdl');
         } else if ($request->getParam('smd') !== null) {
-            $this->_forward('smd');
+            $this->forward('smd');
         } else if ($request->isPost()) {
-            $this->_forward('soap');
+            $this->forward('soap');
         } else {
-            $this->_forward('list');
+            $this->forward('list');
         }
     }
 
@@ -131,11 +150,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
      */
     public function wsdlAction()
     {
-        $wsdl = $this->_getWsdl();
-        
-        // Bypass view renderer for performance optimization
-        $this->_helper->viewRenderer->setNoRender();
-        echo $wsdl;
+        $this->_setResponseBody($this->_getWsdl());
     }
 
     /**
@@ -143,11 +158,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
      */
     public function soapAction()
     {
-        // Let Zend_Soap_Server handle the request
         $this->_setResponseBody($this->_getSoapServer()->handle($this->_getRequestBody()));
-        
-        // Bypass view renderer for performance optimization
-        $this->_helper->viewRenderer->setNoRender();
     }
 
     /**
@@ -155,11 +166,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
      */
     public function restAction()
     {
-        // Let Zend_Rest_Server handle the request
         $this->_setResponseBody($this->_getRestServer()->handle());
-        
-        // Bypass view renderer for performance optimization
-        $this->_helper->viewRenderer->setNoRender();
     }
 
     /**
@@ -167,11 +174,7 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
      */
     public function smdAction()
     {
-        // Let Zend_Json_Server_Smd handle the request
         $this->_setResponseBody($this->_getJsonServer()->getServiceMap()->toJson());
-        
-        // Bypass view renderer for performance optimization
-        $this->_helper->viewRenderer->setNoRender();
     }
 
     /**
@@ -179,11 +182,59 @@ abstract class Fab_Controller_WebService extends Fab_Controller_WebService_Abstr
      */
     public function jsonrpcAction()
     {
-        // Let Zend_Json_Server handle the request
-        $this->_setResponseBody($this->_getJsonServer()->handle());
-        
-        // Bypass view renderer for performance optimization
-        $this->_helper->viewRenderer->setNoRender();
+        $jsonRpcRequest = new Zend_Json_Server_Request();
+        $jsonRpcRequest->loadJson($this->_getRequestBody());
+        $this->_setResponseBody($this->_getJsonServer()->handle($jsonRpcRequest));
+    }
+
+    /**
+     * Output the OpenAPI document.
+     */
+    public function openapiAction()
+    {
+        $this->_setResponseBody($this->_getOpenApi());
+    }
+
+    /**
+     * JSON service requests handling.
+     */
+    public function jsonAction()
+    {
+        try {
+            // Parse request
+            $request = $this->getRequest();
+            if (!$request->isPost()) {
+                throw new Zend_Json_Server_Exception("Invalid Request, POST expected", Zend_Json_Server_Error::ERROR_INVALID_REQUEST);
+            }
+            $method = $request->getParam('invoke');
+            if (empty($method)) {
+                throw new Zend_Json_Server_Exception("Invalid Request, missing required parameter 'invoke'", Zend_Json_Server_Error::ERROR_INVALID_REQUEST);
+            }
+            $body = $this->_getRequestBody();
+            try {
+                $params = Zend_Json::decode($body);
+            } catch (Zend_Json_Exception $e) {
+                throw new Zend_Json_Server_Exception($e->getMessage(), Zend_Json_Server_Error::ERROR_PARSE);
+            }
+            if (!is_array($params)) {
+                $params = array();
+            }
+
+            // Process request with Zend_Json_Server
+            $jsonRpcRequest = new Zend_Json_Server_Request();
+            $jsonRpcRequest->setMethod($method);
+            $jsonRpcRequest->setParams($params);
+            $jsonRpcResponse = $this->_getJsonServer()->handle($jsonRpcRequest);
+            if ($jsonRpcResponse->isError()) {
+                throw new Zend_Json_Server_Exception($jsonRpcResponse->getError()->getMessage(), $jsonRpcResponse->getError()->getCode(), $jsonRpcResponse->getError()->getData());
+            } else {
+                $this->_setResponseBody(Zend_Json::encode($jsonRpcResponse->getResult()));
+            }
+
+        } catch (Exception $e) {
+            $error = new Zend_Json_Server_Error($e->getMessage(), $e->getCode(), $e->getPrevious());
+            $this->_setResponseBody($error->toJson(), $error->getCode() > -32100 ? 500 : 400);
+        }
     }
 
 }
