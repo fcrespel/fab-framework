@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2011-2016, Fabien Crespel
+Copyright (c) 2011-2025, Fabien Crespel
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

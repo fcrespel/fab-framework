@@ -21,7 +21,7 @@ class Fab_OpenApi_Strategy_DoctrineRecord extends Fab_OpenApi_Strategy_Abstract
     protected function _buildTypedProperties($type)
     {
         $typedProperties = array();
-        $table = Doctrine::getTable($type);
+        $table = Doctrine_Core::getTable($type);
 
         // Enumerate columns
         foreach ($table->getColumns() as $column => $columnDef) {

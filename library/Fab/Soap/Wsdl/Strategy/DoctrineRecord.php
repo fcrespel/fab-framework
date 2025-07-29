@@ -42,7 +42,7 @@ class Fab_Soap_Wsdl_Strategy_DoctrineRecord extends Fab_Soap_Wsdl_Strategy_Decor
             return $defaultStrategy->addComplexType($type);
         }
         
-        $table = Doctrine::getTable($type);
+        $table = Doctrine_Core::getTable($type);
 
         $dom = $this->getContext()->toDomDocument();
         

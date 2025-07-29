@@ -70,12 +70,10 @@ abstract class Fab_Validate_Doctrine_Abstract extends Zend_Validate_Abstract
         }
 
         if (!array_key_exists('table', $options)) {
-            // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception('Table option missing!');
         }
 
         if (!array_key_exists('field', $options)) {
-            // require_once 'Zend/Validate/Exception.php';
             throw new Zend_Validate_Exception('Field option missing!');
         }
 

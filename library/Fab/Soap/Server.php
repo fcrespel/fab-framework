@@ -196,7 +196,6 @@ class Fab_Soap_Server extends Zend_Soap_Server
         /**
          * @see Zend_Soap_Server_Exception
          */
-        // require_once 'Zend/Soap/Server/Exception.php';
         try {
             $this->_setRequest($request);
         } catch (Zend_Soap_Server_Exception $e) {

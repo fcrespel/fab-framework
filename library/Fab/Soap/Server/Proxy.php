@@ -40,12 +40,10 @@ class Fab_Soap_Server_Proxy
     public function setClass($className, $classArgs = array())
     {
         if (!is_string($className)) {
-            // require_once 'Zend/Soap/Server/Exception.php';
             throw new Zend_Soap_Server_Exception('Invalid class argument (' . gettype($className) . ')');
         }
 
         if (!class_exists($className)) {
-            // require_once 'Zend/Soap/Server/Exception.php';
             throw new Zend_Soap_Server_Exception('Class "' . $className . '" does not exist');
         }
 
@@ -65,7 +63,6 @@ class Fab_Soap_Server_Proxy
     public function setObject($object)
     {
         if (!is_object($object)) {
-            // require_once 'Zend/Soap/Server/Exception.php';
             throw new Zend_Soap_Server_Exception('Invalid object argument (' . gettype($object) . ')');
         }
 
@@ -111,7 +108,6 @@ class Fab_Soap_Server_Proxy
     public function __call($name, $arguments)
     {
         if ($this->_serviceObject === null) {
-            // require_once 'Zend/Soap/Server/Exception.php';
             throw new Zend_Soap_Server_Exception('No service object has been specified');
         }
 

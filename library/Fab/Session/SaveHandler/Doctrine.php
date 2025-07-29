@@ -348,7 +348,7 @@ class Fab_Session_SaveHandler_Doctrine implements Zend_Session_SaveHandler_Inter
      */
     protected function _getRecord($id)
     {
-        return Doctrine::getTable($this->_modelName)->findOneBy($this->_idColumn, $id);
+        return Doctrine_Core::getTable($this->_modelName)->findOneBy($this->_idColumn, $id);
     }
 
     /**

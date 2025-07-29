@@ -10,10 +10,49 @@
         }
     ],
     "require": {
-        "zendframework/zendframework1": "1.12.*",
+        "php": "^7.4 | ^8.0",
         "aws/aws-sdk-php": "^3.226",
-        "php-opencloud/openstack": "3.*",
-        "cebe/php-openapi": "^1.8"
+        "cebe/php-openapi": "^1.8",
+        "fcrespel/zf-doctrine": "dev-master",
+        "friendsofsymfony1/doctrine1": "^1.4",
+        "jokkedk/zfdebug": "^1.7",
+        "php-opencloud/openstack": "^3.14",
+        "zf1s/zend-acl": "^1.15",
+        "zf1s/zend-application": "^1.15",
+        "zf1s/zend-auth": "^1.15",
+        "zf1s/zend-cache": "^1.15",
+        "zf1s/zend-captcha": "^1.15",
+        "zf1s/zend-config": "^1.15",
+        "zf1s/zend-controller": "^1.15",
+        "zf1s/zend-date": "^1.15",
+        "zf1s/zend-exception": "^1.15",
+        "zf1s/zend-filter": "^1.15",
+        "zf1s/zend-form": "^1.15",
+        "zf1s/zend-http": "^1.15",
+        "zf1s/zend-json": "^1.15",
+        "zf1s/zend-layout": "^1.15",
+        "zf1s/zend-ldap": "^1.15",
+        "zf1s/zend-loader": "^1.15",
+        "zf1s/zend-locale": "^1.15",
+        "zf1s/zend-log": "^1.15",
+        "zf1s/zend-mail": "^1.15",
+        "zf1s/zend-paginator": "^1.15",
+        "zf1s/zend-registry": "^1.15",
+        "zf1s/zend-rest": "^1.15",
+        "zf1s/zend-server": "^1.15",
+        "zf1s/zend-session": "^1.15",
+        "zf1s/zend-soap": "^1.15",
+        "zf1s/zend-tool": "^1.15",
+        "zf1s/zend-uri": "^1.15",
+        "zf1s/zend-validate": "^1.15",
+        "zf1s/zend-version": "^1.15",
+        "zf1s/zend-view": "^1.15"
+    },
+    "require-dev": {
+        "phpcompatibility/php-compatibility": "*"
+    },
+    "replace": {
+        "zendframework/zendframework1": "*"
     },
     "autoload": {
         "psr-0": {
@@ -22,5 +61,10 @@
     },
     "include-path": [
         "library/"
-    ]
+    ],
+    "scripts": {
+        "post-install-cmd": "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+        "post-update-cmd" : "\"vendor/bin/phpcs\" --config-set installed_paths vendor/phpcompatibility/php-compatibility",
+        "phpco": "\"vendor/bin/phpcs\" -p --colors --standard=PHPCompatibility --ignore=vendor/ --runtime-set testVersion 7.4-8.2 ."
+    }
 }
