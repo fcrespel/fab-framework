@@ -46,7 +46,8 @@
         "zf1s/zend-uri": "^1.15",
         "zf1s/zend-validate": "^1.15",
         "zf1s/zend-version": "^1.15",
-        "zf1s/zend-view": "^1.15"
+        "zf1s/zend-view": "^1.15",
+        "bjeavons/zxcvbn-php": "^1.4"
     },
     "require-dev": {
         "phpcompatibility/php-compatibility": "*"
