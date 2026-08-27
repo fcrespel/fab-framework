@@ -176,8 +176,8 @@ class Fab_OpenApi_AutoDiscover
     protected function _addFunctionToPaths($function, $prefix = '/')
     {
         $prototype = $this->_getMainPrototype($function);
-        $requestSchema = $this->_buildRequestSchema($prototype);
-        $responseSchema = $this->_buildResponseSchema($prototype);
+        $requestSchema = $this->_buildRequestSchema($function, $prototype);
+        $responseSchema = $this->_buildResponseSchema($function, $prototype);
         $operation = $this->_buildOperation($function, $requestSchema, $responseSchema);
 
         $this->_paths[$prefix . $function->getName()] = new PathItem(array('post' => $operation));
@@ -186,7 +186,7 @@ class Fab_OpenApi_AutoDiscover
     /**
      * Get the main prototype of a function.
      * This is the prototype with the most parameters.
-     * @param Zend_Server_Reflection_Function_Abstract $function
+     * @param Zend_Server_Reflection_Function_Abstract $function Function to get the prototype for
      * @return Zend_Server_Reflection_Prototype The main prototype of the function
      */
     protected function _getMainPrototype($function)
@@ -208,10 +208,11 @@ class Fab_OpenApi_AutoDiscover
 
     /**
      * Build the request schema for a function prototype.
+     * @param Zend_Server_Reflection_Function_Abstract $function Function to build the request schema for
      * @param Zend_Server_Reflection_Prototype $prototype Function prototype
      * @return Schema OpenAPI Schema for the request
      */
-    protected function _buildRequestSchema($prototype)
+    protected function _buildRequestSchema($function, $prototype)
     {
         $requestParams = array();
         $requestRequired = array();
@@ -224,6 +225,7 @@ class Fab_OpenApi_AutoDiscover
                 $requestRequired[] = $param->getName();
             }
         }
+
         $requestSchema = new Schema(array(
             'type' => 'object',
             'properties' => $requestParams,
@@ -231,15 +233,22 @@ class Fab_OpenApi_AutoDiscover
         if (!empty($requestRequired)) {
             $requestSchema->required = $requestRequired;
         }
-        return $requestSchema;
+
+        $requestSchemaName = $function->getName() . 'Request';
+        if (isset($this->_schemas[$requestSchemaName]))
+            throw new Fab_OpenApi_Exception("Request schema for function '" . $function->getName() . "' already exists");
+
+        $this->_schemas[$requestSchemaName] = $requestSchema;
+        return new Schema($this->mapType($requestSchemaName));
     }
 
     /**
      * Build the response schema for a function prototype.
+     * @param Zend_Server_Reflection_Function_Abstract $function Function to build the response schema for
      * @param Zend_Server_Reflection_Prototype $prototype Function prototype
      * @return Schema OpenAPI Schema for the response
      */
-    protected function _buildResponseSchema($prototype)
+    protected function _buildResponseSchema($function, $prototype)
     {
         return new Schema($this->mapType($prototype->getReturnType()));
     }
