@@ -345,6 +345,13 @@ class Fab_OpenApi_AutoDiscover
                         'type' => 'array',
                         'items' => $this->mapType($itemType),
                     );
+                } else if (substr($type, 0, 5) == 'enum[' && substr($type, -1) == ']') {
+                    // Handle enum types
+                    $enumValues = explode(',', substr($type, 5, -1));
+                    return array(
+                        'type' => 'string',
+                        'enum' => $enumValues,
+                    );
                 } else {
                     // Handle custom types
                     $ref = $this->_addTypeToSchemas($type);

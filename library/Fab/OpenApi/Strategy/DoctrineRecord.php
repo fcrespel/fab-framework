@@ -28,7 +28,12 @@ class Fab_OpenApi_Strategy_DoctrineRecord extends Fab_OpenApi_Strategy_Abstract
             $columnName = $table->getColumnName($column);
             $propertyName = $table->getFieldName($columnName);
             if (!isset($typedProperties[$propertyName])) {
-                $typedProperties[$propertyName] = array($columnDef['type']);
+                if ($columnDef['type'] == 'enum') {
+                    $enumValues = $table->getEnumValues($propertyName);
+                    $typedProperties[$propertyName] = array('enum[' . implode(',', $enumValues) . ']');
+                } else {
+                    $typedProperties[$propertyName] = array($columnDef['type']);
+                }
                 if (!isset($columnDef['notnull']) || $columnDef['notnull'] !== true) {
                     $typedProperties[$propertyName][] = 'null';
                 }
