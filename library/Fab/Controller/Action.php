@@ -17,14 +17,16 @@ class Fab_Controller_Action extends Zend_Controller_Action implements Zend_Acl_R
      */
     public function postDispatch()
     {
-        $flashMessenger = $this->getHelper('FlashMessenger');
-        $namespaces = array('default', 'success', 'info', 'warning', 'error');
-        $messages = array();
-        foreach ($namespaces as $namespace) {
-            if ($flashMessenger->setNamespace($namespace)->hasMessages())
-                $messages[$namespace] = $flashMessenger->getMessages();
+        if (Zend_Session::isStarted()) {
+            $flashMessenger = $this->getHelper('FlashMessenger');
+            $namespaces = array('default', 'success', 'info', 'warning', 'error');
+            $messages = array();
+            foreach ($namespaces as $namespace) {
+                if ($flashMessenger->setNamespace($namespace)->hasMessages())
+                    $messages[$namespace] = $flashMessenger->getMessages();
+            }
+            $this->view->flashMessages = $messages;
         }
-        $this->view->flashMessages = $messages;
     }
 
     /**

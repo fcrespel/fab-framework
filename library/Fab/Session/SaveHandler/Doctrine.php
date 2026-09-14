@@ -118,7 +118,7 @@ class Fab_Session_SaveHandler_Doctrine implements Zend_Session_SaveHandler_Inter
         }
         
         $this->_checkRequiredOptions();
-        $this->setLifeTime($this->_lifetime);
+        $this->setLifetime($this->_lifetime);
     }
 
     /**

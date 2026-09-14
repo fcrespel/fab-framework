@@ -90,7 +90,7 @@ class Fab_View_Helper_UserBox extends Zend_View_Helper_Abstract
      */
     public function getIdentity()
     {
-        if ($this->_identity === null && Zend_Auth::getInstance()->hasIdentity()) {
+        if ($this->_identity === null && Zend_Session::isStarted() && Zend_Auth::getInstance()->hasIdentity()) {
             $this->_identity = Zend_Auth::getInstance()->getIdentity();
         }
         return $this->_identity;

@@ -2,6 +2,7 @@
 
 class Fab_Form_Model_Filter extends Fab_Form_Model
 {
+    protected $_csrfEnabled = false;
     protected $_generateManyFields = false;
     protected $_submitLabel = 'Search';
     
