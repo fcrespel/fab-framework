@@ -13,6 +13,9 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
 
     /** @var mixed */
     protected $_credentialTransformer = null;
+
+    /** @var mixed */
+    protected $_credentialVerifier = null;
     
     /** @var string */
     protected $_lockColumn = null;
@@ -79,6 +82,8 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
 
     /**
      * Get the credential transformer function (or closure).
+     * The function will get the credential value in argument
+     * and must return a transformed one.
      * @return mixed
      */
     public function getCredentialTransformer()
@@ -88,11 +93,35 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
 
     /**
      * Set the credential transformer function (or closure).
+     * The function will get the credential value in argument
+     * and must return a transformed one.
      * @param mixed $credentialTransformer
      */
     public function setCredentialTransformer($credentialTransformer = null)
     {
         $this->_credentialTransformer = $credentialTransformer;
+    }
+
+    /**
+     * Get the credential verifier function (or closure).
+     * The function will get the account record and credential value in argument
+     * and must return a boolean indicating if the credential is valid.
+     * @return mixed
+     */
+    public function getCredentialVerifier()
+    {
+        return $this->_credentialVerifier;
+    }
+
+    /**
+     * Set the credential verifier function (or closure).
+     * The function will get the account record and credential value in argument
+     * and must return a boolean indicating if the credential is valid.
+     * @param mixed $credentialVerifier
+     */
+    public function setCredentialVerifier($credentialVerifier = null)
+    {
+        $this->_credentialVerifier = $credentialVerifier;
     }
     
     /**
@@ -195,6 +224,7 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
             
         } else {
             // Identity found, check credentials
+            $record = $result->getFirst();
             $credential = $this->getCredential();
 
             // Transform the credential if necessary (MD5, SHA-1, etc.)
@@ -203,9 +233,17 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
                 $credential = call_user_func($transformer, $credential);
             }
 
-            // Match with the credential column
-            if ($result->getFirst()->get($this->getCredentialColumn()) === $credential) {
-                if ($this->getLockColumn() !== null && $result->getFirst()->get($this->getLockColumn())) {
+            // Verify the credential
+            $verifier = $this->getCredentialVerifier();
+            if (is_callable($verifier)) {
+                $isValid = call_user_func($verifier, $record, $credential);
+            } else {
+                $isValid = ($credential === $record->get($this->getCredentialColumn()));
+            }
+
+            // Check validity
+            if ($isValid) {
+                if ($this->getLockColumn() !== null && $record->get($this->getLockColumn())) {
                     // Locked account
                     $code = Zend_Auth_Result::FAILURE_UNCATEGORIZED;
                     $messages[0] = 'Account is locked. Please contact an administrator.';
@@ -214,7 +252,7 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
                     $code = Zend_Auth_Result::SUCCESS;
                     $messages[0] = 'Authentication successful.';
                     $identity = $this->getIdentity();
-                    $this->_record = $result->getFirst();
+                    $this->_record = $record;
                 }
             } else {
                 // Credentials don't match
@@ -237,8 +275,8 @@ class Fab_Auth_Adapter_Doctrine extends Fab_Auth_Adapter_Abstract
             throw new Zend_Auth_Adapter_Exception('A model name must be supplied for the ' . get_class() . ' authentication adapter.');
         } else if (empty($this->_identityColumn)) {
             throw new Zend_Auth_Adapter_Exception('An identity column must be supplied for the ' . get_class() . ' authentication adapter.');
-        } else if (empty($this->_credentialColumn)) {
-            throw new Zend_Auth_Adapter_Exception('A credential column must be supplied for the ' . get_class() . ' authentication adapter.');
+        } else if (empty($this->_credentialColumn) && empty($this->_credentialVerifier)) {
+            throw new Zend_Auth_Adapter_Exception('A credential column or verifier must be supplied for the ' . get_class() . ' authentication adapter.');
         }
         parent::_validateParams();
     }
